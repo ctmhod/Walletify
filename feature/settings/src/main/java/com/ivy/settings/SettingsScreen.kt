@@ -224,12 +224,6 @@ private fun BoxWithConstraintsScope.UI(
 
             Spacer(Modifier.height(24.dp))
 
-            CurrencyButton(currency = currencyCode) {
-                currencyModalVisible = true
-            }
-
-            Spacer(Modifier.height(12.dp))
-
             AccountCard(
                 nameLocalAccount = nameLocalAccount,
             ) {
@@ -295,6 +289,12 @@ private fun BoxWithConstraintsScope.UI(
                 }
             ) {
                 onSwitchTheme()
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            CurrencyButton(currency = currencyCode) {
+                currencyModalVisible = true
             }
 
             Spacer(Modifier.height(12.dp))
