@@ -20,8 +20,6 @@ interface RootScreen {
 
     fun reviewIvyWallet(dismissReviewCard: Boolean)
 
-    fun shareIvyWallet()
-
     fun openUrlInBrowser(url: String)
 
     fun shareCSVFile(fileUri: Uri)

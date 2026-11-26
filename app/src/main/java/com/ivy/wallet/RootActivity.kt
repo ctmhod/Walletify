@@ -389,18 +389,6 @@ class RootActivity : AppCompatActivity(), RootScreen {
         }
     }
 
-    override fun shareIvyWallet() {
-        val share = Intent.createChooser(
-            Intent().apply {
-                action = Intent.ACTION_SEND
-                putExtra(Intent.EXTRA_TEXT, Constants.URL_WALLETIFY_RELEASES)
-                type = "text/plain"
-            },
-            null
-        )
-        startActivity(share)
-    }
-
     @Suppress("SwallowedException")
     override fun openGooglePlayAppPage(appId: String) {
         try {
