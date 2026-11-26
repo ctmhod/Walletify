@@ -50,6 +50,14 @@ if __name__ == '__main__':
             if n.get('checkable') == 'true' and n.get('checked') == 'false':
                 tap(*center(n.get('bounds'))); c += 1
         print('checked', c)
+    elif cmd == 'centers':
+        seen = set()
+        for n in nodes(root):
+            if n.get('clickable') == 'true':
+                x, y = center(n.get('bounds'))
+                k = (x // 40, y // 40)
+                if k in seen: continue
+                seen.add(k); print(x, y, (n.get('text') or n.get('content-desc') or '-').replace(' ', '_'))
     elif cmd == 'tap-class':
         c = 0
         for n in nodes(root):
