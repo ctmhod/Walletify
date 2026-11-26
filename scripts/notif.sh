@@ -4,6 +4,10 @@ APK="$1"; PKG=com.ctmhod.walletify; OUT="$2"; mkdir -p "$OUT"; U=scripts/ui.py
 adb logcat -c
 adb install -r "$APK" | tee "$OUT/install.txt"
 adb shell wm size 1080x2400; adb shell wm density 420
+adb root >/dev/null 2>&1; sleep 3
+adb shell settings put global auto_time 0; adb shell settings put global auto_time_zone 0
+D=$(date +%m%d)
+adb shell "date ${D}19580026.00" | tee "$OUT/clock.txt"; adb shell date | tee -a "$OUT/clock.txt"
 adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
 sleep 10
 n=0
@@ -37,13 +41,9 @@ snap after-allow-on
 adb shell pm list permissions -g >/dev/null 2>&1
 adb shell dumpsys package $PKG | grep -i "POST_NOTIFICATIONS" | tee -a "$OUT/screens.txt"
 adb shell dumpsys jobscheduler | grep -i "$PKG" | head -20 | tee "$OUT/jobs.txt"
-adb shell dumpsys jobscheduler | grep -n "namespace\|Namespace" | head -5 | tee -a "$OUT/screens.txt"
-for J in $(adb shell dumpsys jobscheduler | grep -o "JOB #u0a[0-9]*/[0-9]*: [0-9a-f]* $PKG" | sed 's/JOB #u0a[0-9]*\/\([0-9]*\):.*/\1/' | sort -u); do
-  echo "run job $J" | tee -a "$OUT/screens.txt"
-  adb shell cmd jobscheduler run -f -n androidx.work.systemjobscheduler $PKG $J 2>&1 | tee -a "$OUT/screens.txt"
-  adb shell cmd jobscheduler run -f $PKG $J 2>&1 | tee -a "$OUT/screens.txt"
-done
-sleep 8
+adb shell date | tee -a "$OUT/screens.txt"
+sleep 150
+adb shell date | tee -a "$OUT/screens.txt"
 adb shell input keyevent 3; sleep 1
 adb shell cmd statusbar expand-notifications; sleep 2
 snap notification-shade
