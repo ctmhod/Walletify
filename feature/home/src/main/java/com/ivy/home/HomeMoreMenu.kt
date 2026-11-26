@@ -36,7 +36,6 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layout
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -52,7 +51,6 @@ import com.ivy.design.l0_system.style
 import com.ivy.design.utils.thenIf
 import com.ivy.legacy.Constants
 import com.ivy.legacy.ivyWalletCtx
-import com.ivy.legacy.rootScreen
 import com.ivy.legacy.utils.clickableNoIndication
 import com.ivy.legacy.utils.colorLerp
 import com.ivy.legacy.utils.lerp
@@ -246,7 +244,8 @@ private fun ColumnScope.Content(
 
     QuickAccess(
         theme = theme,
-        onSwitchTheme = onSwitchTheme
+        onSwitchTheme = onSwitchTheme,
+        onSavingsGoalClick = onBufferClick
     )
 
     Spacer(Modifier.height(40.dp))
@@ -405,7 +404,8 @@ private fun ColumnScope.Buffer(
 @Composable
 private fun QuickAccess(
     theme: Theme,
-    onSwitchTheme: () -> Unit
+    onSwitchTheme: () -> Unit,
+    onSavingsGoalClick: () -> Unit
 ) {
     Column {
         val nav = navigation()
@@ -494,20 +494,11 @@ private fun QuickAccess(
         ) {
             Spacer(Modifier.weight(1f))
 
-            val context = LocalContext.current
-//        MoreMenuButton(
-//            icon = R.drawable.home_more_menu_reports,
-//            label = "Charts"
-//        ) {
-//            ivyContext.navigateTo(Screen.Charts)
-//        }
-
-            val rootScreen = rootScreen()
             MoreMenuButton(
-                icon = R.drawable.home_more_menu_share,
-                label = stringResource(R.string.share_ivy)
+                icon = R.drawable.home_more_menu_savings_goal,
+                label = stringResource(R.string.savings_goal)
             ) {
-                rootScreen.shareIvyWallet()
+                onSavingsGoalClick()
             }
 
             Spacer(Modifier.weight(1f))
