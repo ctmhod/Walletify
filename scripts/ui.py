@@ -71,6 +71,10 @@ if __name__ == '__main__':
             if n.get('class', '').endswith(sys.argv[2]):
                 tap(*center(n.get('bounds'))); c += 1
         print('tapped', c)
+    elif cmd == 'tap-first':
+        for n in nodes(root):
+            if n.get('class', '').endswith(sys.argv[2]):
+                tap(*center(n.get('bounds'))); print('tapped first'); break
     elif cmd == 'clickables':
         print(' | '.join((n.get('text') or n.get('content-desc') or n.get('class').split('.')[-1]) + '@' + n.get('bounds') for n in nodes(root) if n.get('clickable') == 'true'))
     elif cmd == 'tap-xy':

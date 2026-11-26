@@ -26,12 +26,14 @@ class DisclaimerViewModel @Inject constructor(
         return DisclaimerViewState(
             checkboxes = checkboxes,
             agreeButtonEnabled = checkboxes.all(CheckboxViewState::checked),
+            allChecked = checkboxes.all(CheckboxViewState::checked),
         )
     }
 
     override fun onEvent(event: DisclaimerViewEvent) {
         when (event) {
             DisclaimerViewEvent.OnAgreeClick -> handleAgreeClick()
+            DisclaimerViewEvent.OnAgreeAllClick -> handleAgreeAllClick()
             is DisclaimerViewEvent.OnCheckboxClick -> handleCheckboxClick(event)
         }
     }
@@ -41,6 +43,11 @@ class DisclaimerViewModel @Inject constructor(
             legalRepo.setDisclaimerAccepted(accepted = true)
             navigation.back()
         }
+    }
+
+    private fun handleAgreeAllClick() {
+        val target = !checkboxes.all(CheckboxViewState::checked)
+        checkboxes = checkboxes.map { it.copy(checked = target) }.toImmutableList()
     }
 
     private fun handleCheckboxClick(event: DisclaimerViewEvent.OnCheckboxClick) {

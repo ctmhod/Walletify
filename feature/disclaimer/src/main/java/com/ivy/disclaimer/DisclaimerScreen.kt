@@ -9,6 +9,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.ivy.disclaimer.CheckboxViewState
 import com.ivy.disclaimer.composables.AcceptTermsText
 import com.ivy.disclaimer.composables.AgreeButton
 import com.ivy.disclaimer.composables.AgreementCheckBox
@@ -59,6 +60,17 @@ private fun Content(
         item {
             Spacer(modifier = Modifier.height(12.dp))
             AcceptTermsText()
+        }
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
+            AgreementCheckBox(
+                viewState = CheckboxViewState(
+                    text = "Agree to all",
+                    checked = viewState.allChecked
+                ),
+                bold = true,
+                onClick = { onEvent(DisclaimerViewEvent.OnAgreeAllClick) }
+            )
         }
         itemsIndexed(items = viewState.checkboxes) { index, item ->
             Spacer(modifier = Modifier.height(8.dp))

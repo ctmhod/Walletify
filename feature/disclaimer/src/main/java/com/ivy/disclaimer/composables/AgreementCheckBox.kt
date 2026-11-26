@@ -16,6 +16,7 @@ import com.ivy.disclaimer.CheckboxViewState
 fun AgreementCheckBox(
     viewState: CheckboxViewState,
     modifier: Modifier = Modifier,
+    bold: Boolean = false,
     onClick: () -> Unit,
 ) {
     Row(
@@ -24,6 +25,9 @@ fun AgreementCheckBox(
     ) {
         Checkbox(checked = viewState.checked, onCheckedChange = { onClick() })
         Spacer(modifier = Modifier.width(8.dp))
-        Text(text = viewState.text)
+        Text(
+            text = viewState.text,
+            fontWeight = if (bold) androidx.compose.ui.text.font.FontWeight.Bold else null
+        )
     }
 }

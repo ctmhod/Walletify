@@ -13,7 +13,7 @@ H=$(adb shell wm size | grep -oE '[0-9]+x[0-9]+' | tail -1 | cut -dx -f2)
 swipe_up() { adb shell input swipe $((W/2)) $((H*75/100)) $((W/2)) $((H*25/100)) 300; sleep 1; }
 adb shell wm size 1080x2400; adb shell wm density 420; sleep 3
 snap launch
-python3 $U tap-class CheckBox; sleep 2; snap checkboxes
+python3 $U tap-first CheckBox; sleep 2; snap checkboxes
 
 swipe_up; swipe_up; snap scrolled
 adb shell input tap $((W/2)) $((H*90/100)); sleep 5; snap accepted

@@ -13,7 +13,7 @@ sleep 10
 n=0
 snap() { n=$((n+1)); adb exec-out screencap -p > "$OUT/$(printf %02d $n)-$1.png"; echo "[$n $1] $(python3 $U texts | cut -c1-700)" | tee -a "$OUT/screens.txt"; }
 sleep 5
-python3 $U tap-class CheckBox; sleep 1
+python3 $U tap-first CheckBox; sleep 1
 for j in 1 2; do adb shell input swipe 540 1800 540 600 300; sleep 1; done
 python3 $U tap-bottom; sleep 5
 for k in $(seq 1 12); do
