@@ -85,8 +85,8 @@ fun BoxWithConstraintsScope.OnboardingSplashLogin(
         label = "logoWidth"
     ) {
         when (it) {
-            OnboardingState.SPLASH -> 113.dp
-            else -> 76.dp
+            OnboardingState.SPLASH -> 112.dp
+            else -> 96.dp
         }
     }
 
@@ -97,8 +97,8 @@ fun BoxWithConstraintsScope.OnboardingSplashLogin(
         label = "logoHeight"
     ) {
         when (it) {
-            OnboardingState.SPLASH -> 96.dp
-            else -> 64.dp
+            OnboardingState.SPLASH -> 112.dp
+            else -> 96.dp
         }
     }
 
@@ -115,7 +115,7 @@ fun BoxWithConstraintsScope.OnboardingSplashLogin(
                 (ivyContext.screenHeight / 2f - logoHeight.toDensityPx() / 2f).toDensityDp()
             }
 
-            else -> 56.dp
+            else -> 72.dp
         }
     }
 
@@ -162,7 +162,7 @@ fun BoxWithConstraintsScope.OnboardingSplashLogin(
                     val placeable = measurable.measure(constraints)
 
                     val xSplash = ivyContext.screenWidth / 2f - placeable.width / 2
-                    val xLogin = 24.dp.toPx()
+                    val xLogin = xSplash
 
                     layout(placeable.width, placeable.height) {
                         placeable.placeRelative(
@@ -175,7 +175,7 @@ fun BoxWithConstraintsScope.OnboardingSplashLogin(
                     internalSwitch = !internalSwitch
                 },
             painter = painterResource(id = R.drawable.ivy_wallet_logo),
-            contentScale = ContentScale.FillBounds,
+            contentScale = ContentScale.Fit,
             contentDescription = "Walletify logo"
         )
 
@@ -245,7 +245,7 @@ private fun Modifier.animateXCenterToLeft(
 
         layout(placeable.width, placeable.height) {
             val xSplash = ivyContext.screenWidth / 2f - placeable.width / 2
-            val xLogin = 32.dp.toPx()
+            val xLogin = xSplash
 
             placeable.placeRelative(
                 x = lerp(xSplash, xLogin, percentTransition).roundToInt(),
@@ -275,8 +275,8 @@ private fun LoginSection(
             LoginButton(
                 icon = R.drawable.ic_local_account,
                 text = stringResource(R.string.offline_account),
-                textColor = UI.colors.pureInverse,
-                backgroundGradient = Gradient.solid(UI.colors.medium),
+                textColor = Color(0xFF07080D),
+                backgroundGradient = Gradient.solid(Color(0xFF14CC9E)),
                 hasShadow = false
             ) {
                 onSkip()
@@ -295,7 +295,8 @@ private fun LoginSection(
 @Composable
 private fun LocalAccountExplanation() {
     Text(
-        modifier = Modifier.padding(start = 32.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp),
+        textAlign = TextAlign.Center,
         text = stringResource(R.string.enter_with_offline_account),
         style = UI.typo.c.style(
             color = Gray,
@@ -306,7 +307,8 @@ private fun LocalAccountExplanation() {
     Spacer(Modifier.height(4.dp))
 
     Text(
-        modifier = Modifier.padding(start = 32.dp, end = 32.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp),
+        textAlign = TextAlign.Center,
         text = stringResource(R.string.your_data_will_be_saved_only_locally),
         style = UI.typo.c.style(
             color = Gray,
