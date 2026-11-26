@@ -1,0 +1,82 @@
+name: QA agreement v0.1.41
+on:
+  workflow_dispatch:
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download APKs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v0.1.41 -p '*x86_64.apk' -O new.apk
+          gh release download v0.1.40 -p '*x86_64.apk' -O old.apk
+          ls -l new.apk old.apk
+          cat > qa.sh <<'QA_EOF'
+          #!/usr/bin/env bash
+          set -u
+          PKG=com.ctmhod.walletify; OUT=out; mkdir -p $OUT; U=scripts/ui.py
+          n=0
+          snap() { n=$((n+1)); adb exec-out screencap -p > "$OUT/$(printf %02d $n)-$1.png"; echo "[$n $1] $(python3 $U texts | cut -c1-260)" | tee -a "$OUT/screens.txt"; }
+          launch() { adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1; sleep 10; }
+          adb logcat -c
+          adb install -r old.apk | tee $OUT/install-old.txt
+          # 1) upgrade check: accept in v0.1.40, then install v0.1.41 over it
+          adb shell wm size 1080x2400; adb shell wm density 420; adb shell cmd uimode night no
+          launch; snap old-agreement
+          python3 $U tap-checkables; sleep 1
+          python3 $U tap-text "Agree to all"; sleep 6; snap old-after-agree
+          adb shell am force-stop $PKG
+          adb install -r new.apk | tee $OUT/install-new.txt
+          launch; snap upgraded-first-launch
+          adb shell am force-stop $PKG; launch; snap upgraded-second-launch
+          adb logcat -d | grep -E "FATAL EXCEPTION" -A10 | head -30 > $OUT/crash-upgrade.txt
+          # 2) fresh install of the new build in all sizes, themes, fonts
+          adb uninstall $PKG >/dev/null; adb install new.apk | tee -a $OUT/install-new.txt
+          for size in "1080x2400 420" "720x1560 320" "1080x1920 420"; do
+            set -- $size
+            adb shell wm size $1; adb shell wm density $2
+            for mode in no yes; do
+              adb shell cmd uimode night $mode
+              adb shell pm clear $PKG >/dev/null
+              launch; snap "agree-$1-night$mode"
+              adb shell input swipe 540 1500 540 500 300; sleep 1; snap "agree-$1-night$mode-scrolled"
+              python3 $U tap-text "Agree to all"; sleep 2; snap "after-agree-$1-night$mode"
+            done
+          done
+          for fs in 1.3 2.0; do
+            for size in "1080x2400 420" "720x1560 320"; do
+              set -- $size
+              adb shell wm size $1; adb shell wm density $2; adb shell settings put system font_scale $fs
+              adb shell cmd uimode night yes
+              adb shell pm clear $PKG >/dev/null
+              launch; snap "agree-font$fs-$1"
+              adb shell input swipe 360 1300 360 300 300; sleep 1; snap "agree-font$fs-$1-scrolled"
+            done
+          done
+          adb shell settings put system font_scale 1.0; adb shell wm size reset; adb shell wm density reset
+          # 3) tapping a term card must do nothing
+          adb shell cmd uimode night no; adb shell pm clear $PKG >/dev/null; launch
+          python3 $U tap-text "I understand there is no warranty" x; sleep 1; snap tap-term-card
+          adb logcat -d | grep -E "FATAL EXCEPTION" -A10 | head -30 > $OUT/crash.txt
+          true
+          QA_EOF
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: default
+          disable-animations: true
+          script: bash qa.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qa-agreement
+          path: out
+          retention-days: 3
