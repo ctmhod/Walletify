@@ -261,7 +261,6 @@
     <string name="exporting_data">Exporting Data</string>
     <string name="exporting_data_description">Please wait, exporting data</string>
     <string name="start_date_of_month">Choose the start date of the month</string>
-    <string name="ivy_telegram">Developer: @ctmhod</string>
     <string name="help_center">Help and issues (GitHub)</string>
     <string name="roadmap">Roadmap</string>
     <string name="report_bug">Report a bug</string>
