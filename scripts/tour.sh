@@ -41,26 +41,23 @@ shot() {
   for k in 1 2 3 4 5; do adb shell input swipe 540 500 540 1500 300; done; sleep 1
 }
 opendrawer() { python3 $U centers > /tmp/c0.txt; l=$(awk '$1>900 && $2<300 {print; exit}' /tmp/c0.txt); set -- $l; adb shell input tap $1 $2; sleep 3; }
-python3 $U tap-text prompt_dismiss; sleep 2
-shot home
-python3 $U tap-xy 540 1767; sleep 3
-shot add-transaction-menu
-python3 $U tap-text close; sleep 2
-python3 $U tap-xy 846 1840; sleep 3
-shot accounts-tab
-python3 $U tap-xy 233 1840; sleep 2
-opendrawer; shot quick-access-menu
-for sec in "Categories" "Planned Payments" "Savings goal" "Reports" "Budgets" "Loans"; do
-  python3 $U tap-text "$sec"; sleep 3
-  shot "$sec"
-  back; alive "$sec"
-  adb shell dumpsys window | grep -q "mCurrentFocus.*$PKG" || { adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1; sleep 4; }
-  python3 $U texts | grep -q "Quick access" || opendrawer
-done
-python3 $U tap-xy 967 433; sleep 3
-shot settings
-python3 $U tap-text "Import data"; sleep 3
-shot import-picker
-back; sleep 1
+
+gohome() { adb shell am force-stop $PKG; adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1; sleep 7; python3 $U tap-text prompt_dismiss >/dev/null 2>&1; sleep 1; }
+menu() { adb shell input tap 975 179; sleep 3; }
+page() { # NAME : open from menu
+  gohome; menu; python3 $U tap-text "$1" >/dev/null; sleep 3; shot "$1"; alive "$1"; }
+gohome; shot home
+gohome; adb shell input tap 540 1767; sleep 3; snap add-transaction
+adb shell input swipe 540 1700 540 900 300; sleep 1; snap add-transaction-scrolled
+gohome; adb shell input tap 846 1840; sleep 3; shot accounts-tab
+gohome; menu; snap quick-access-menu
+page "Categories"
+page "Planned Payments"
+page "Savings goal"
+page "Reports"
+page "Budgets"
+page "Loans"
+gohome; menu; adb shell input tap 967 433; sleep 3; shot settings
+python3 $U tap-text "Import data"; sleep 3; snap import-picker
 adb logcat -d | grep -E "FATAL EXCEPTION" -A10 | head -30 > "$OUT/crash.txt"
 true
