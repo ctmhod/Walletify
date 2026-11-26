@@ -38,7 +38,7 @@ fun AgreementCheckBox(
         Row(
             modifier = Modifier
                 .clickable(onClick = onClick)
-                .padding(horizontal = 8.dp, vertical = 8.dp),
+                .padding(horizontal = 8.dp, vertical = 2.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Checkbox(
@@ -52,8 +52,8 @@ fun AgreementCheckBox(
             Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = viewState.text,
-                fontSize = 13.sp,
-                lineHeight = 18.sp,
+                fontSize = 12.sp,
+                lineHeight = 16.sp,
                 fontWeight = if (bold) FontWeight.Bold else null
             )
         }

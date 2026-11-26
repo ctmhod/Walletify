@@ -65,11 +65,11 @@ private fun Content(
                 OpenSourceCard()
             }
             item {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(10.dp))
                 AcceptTermsText()
             }
             itemsIndexed(items = viewState.checkboxes) { index, item ->
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 AgreementCheckBox(
                     viewState = item,
                     onClick = {
@@ -85,7 +85,7 @@ private fun Content(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             AgreeButton(
                 enabled = true,
