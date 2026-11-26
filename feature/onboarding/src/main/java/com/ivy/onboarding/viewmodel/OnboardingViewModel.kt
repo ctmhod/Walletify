@@ -126,7 +126,7 @@ class OnboardingViewModel @Inject constructor(
             if (settingsDao.findAll().isEmpty()) {
                 settingsWriter.save(
                     Settings(
-                        theme = if (isSystemDarkMode) Theme.DARK else Theme.LIGHT,
+                        theme = Theme.AUTO,
                         name = "",
                         baseCurrency = defaultCurrency.code,
                         bufferAmount = 0.0.toBigDecimal()

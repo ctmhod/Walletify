@@ -62,7 +62,7 @@ class RootViewModel @Inject constructor(
 
             ioThread {
                 val theme = settingsDao.findAll().firstOrNull()?.theme
-                    ?: if (systemDarkMode) Theme.DARK else Theme.LIGHT
+                    ?: Theme.AUTO
                 ivyContext.switchTheme(theme)
 
                 ivyContext.initStartDayOfMonthInMemory(sharedPrefs = sharedPrefs)

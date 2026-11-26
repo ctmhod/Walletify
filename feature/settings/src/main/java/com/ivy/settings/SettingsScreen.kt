@@ -92,6 +92,7 @@ fun BoxWithConstraintsScope.SettingsScreen() {
         onSwitchTheme = {
             viewModel.onEvent(SettingsEvent.SwitchTheme)
         },
+        onSetTheme = { viewModel.onEvent(SettingsEvent.SetTheme(it)) },
         lockApp = uiState.lockApp,
         showNotifications = uiState.showNotifications,
         hideCurrentBalance = uiState.hideCurrentBalance,
@@ -160,6 +161,7 @@ private fun BoxWithConstraintsScope.UI(
     currencyCode: String,
     theme: Theme,
     onSwitchTheme: () -> Unit,
+    onSetTheme: (Theme) -> Unit = {},
     lockApp: Boolean,
     nameLocalAccount: String?,
     languageOptionVisible: Boolean,
@@ -284,22 +286,7 @@ private fun BoxWithConstraintsScope.UI(
 
             Spacer(Modifier.height(16.dp))
 
-            AppThemeButton(
-                icon = when (theme) {
-                    Theme.LIGHT -> R.drawable.home_more_menu_light_mode
-                    Theme.DARK -> R.drawable.home_more_menu_dark_mode
-                    Theme.AMOLED_DARK -> R.drawable.home_more_menu_amoled_dark_mode
-                    Theme.AUTO -> R.drawable.home_more_menu_auto_mode
-                },
-                label = when (theme) {
-                    Theme.LIGHT -> stringResource(R.string.light_mode)
-                    Theme.DARK -> stringResource(R.string.dark_mode)
-                    Theme.AMOLED_DARK -> stringResource(R.string.amoled_mode)
-                    Theme.AUTO -> stringResource(R.string.auto_mode)
-                }
-            ) {
-                onSwitchTheme()
-            }
+            ThemeSelector(theme = theme, onSetTheme = onSetTheme)
 
             Spacer(Modifier.height(12.dp))
 
@@ -736,6 +723,49 @@ private fun Releases(nav: Navigation) {
         iconPadding = 8.dp
     ) {
         nav.navigateTo(ReleasesScreen)
+    }
+}
+
+@Composable
+private fun ThemeSelector(
+    theme: Theme,
+    onSetTheme: (Theme) -> Unit
+) {
+    Column(
+        Modifier
+            .padding(horizontal = 16.dp)
+            .fillMaxWidth()
+            .clip(UI.shapes.r4)
+            .background(UI.colors.medium)
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "Theme",
+            style = UI.typo.b2.style(
+                color = UI.colors.pureInverse,
+                fontWeight = FontWeight.Bold
+            )
+        )
+        Spacer(Modifier.height(12.dp))
+        Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+            listOf(Theme.AUTO to "Auto", Theme.DARK to "Dark", Theme.LIGHT to "Light").forEach { (t, label) ->
+                val selected = theme == t || (t == Theme.DARK && theme == Theme.AMOLED_DARK)
+                Text(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(UI.shapes.rFull)
+                        .background(if (selected) UI.colors.primary else UI.colors.pure)
+                        .clickable { onSetTheme(t) }
+                        .padding(vertical = 12.dp),
+                    text = label,
+                    textAlign = TextAlign.Center,
+                    style = UI.typo.b2.style(
+                        color = if (selected) UI.colors.pure else UI.colors.pureInverse,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
+        }
     }
 }
 

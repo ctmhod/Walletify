@@ -18,10 +18,10 @@ class SettingsAct @Inject constructor(
     suspend fun getSettingsWithNextTheme(): Settings {
         val currentSettings = this(Unit)
         val newTheme = when (currentSettings.theme) {
-            Theme.LIGHT -> Theme.DARK
-            Theme.DARK -> Theme.AMOLED_DARK
+            Theme.AUTO -> Theme.DARK
+            Theme.DARK -> Theme.LIGHT
             Theme.AMOLED_DARK -> Theme.AUTO
-            Theme.AUTO -> Theme.LIGHT
+            Theme.LIGHT -> Theme.AUTO
         }
         return currentSettings.copy(theme = newTheme)
     }

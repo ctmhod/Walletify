@@ -215,6 +215,7 @@ class SettingsViewModel @Inject constructor(
             is SettingsEvent.ExportToCsv -> exportToCSV(event.rootScreen)
             is SettingsEvent.BackupData -> exportToZip(event.rootScreen)
             SettingsEvent.SwitchTheme -> switchTheme()
+            is SettingsEvent.SetTheme -> setTheme(event.theme)
             is SettingsEvent.SetLockApp -> setLockApp(event.lockApp)
             is SettingsEvent.SetShowNotifications -> setShowNotifications(event.showNotifications)
             is SettingsEvent.SetHideCurrentBalance -> setHideCurrentBalance(
@@ -306,6 +307,15 @@ class SettingsViewModel @Inject constructor(
                     )
                 }
             }
+        }
+    }
+
+    private fun setTheme(theme: Theme) {
+        viewModelScope.launch {
+            val newSettings = settingsAct.getSettings().copy(theme = theme)
+            updateSettingsAct(newSettings)
+            ivyContext.switchTheme(theme)
+            currentTheme.value = theme
         }
     }
 
