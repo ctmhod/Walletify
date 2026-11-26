@@ -345,7 +345,7 @@ private fun ChooseIconModal() {
 data class IconPickerSection(val title: String)
 
 fun ivyIcons(): List<Any> = listOf(
-    IconPickerSection("Ivy"),
+    IconPickerSection("General"),
     "account",
     "category",
     "cash",

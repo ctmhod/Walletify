@@ -41,7 +41,7 @@ enum class ImportType {
     }
 
     fun appId(): String = when (this) {
-        IVY -> "com.ivy.wallet"
+        IVY -> "com.ctmhod.walletify"
         MONEY_MANAGER -> "com.realbyteapps.moneymanagerfree"
         WALLET_BY_BUDGET_BAKERS -> "com.droid4you.application.wallet"
         SPENDEE -> "com.cleevio.spendee"
@@ -68,7 +68,7 @@ enum class ImportType {
     }
 
     fun listName(): String = when (this) {
-        IVY -> "Ivy Wallet"
+        IVY -> "Walletify"
         MONEY_MANAGER -> "Money Manager"
         WALLET_BY_BUDGET_BAKERS -> "Wallet by BudgetBakers"
         SPENDEE -> "Spendee"
@@ -81,7 +81,7 @@ enum class ImportType {
     }
 
     fun appName(): String = when (this) {
-        IVY -> "Ivy Wallet"
+        IVY -> "Walletify"
         else -> listName()
     }
 }

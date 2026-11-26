@@ -95,7 +95,7 @@ private fun PreviewWrapContentRow() {
                 .background(UI.colors.red),
             items = listOf(
                 Category("Todo", UI.colors.primary.toArgb()),
-                Category("Ivy", UI.colors.primary.toArgb()),
+                Category("Walletify", UI.colors.primary.toArgb()),
                 Category("Qredo", UI.colors.primary.toArgb()),
                 Category("Home", UI.colors.primary.toArgb()),
                 Category("Inspiration", UI.colors.primary.toArgb()),
