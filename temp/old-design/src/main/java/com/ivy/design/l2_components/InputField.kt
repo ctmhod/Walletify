@@ -50,7 +50,7 @@ fun InputField(
     imeAction: IvyImeAction = IvyImeAction.DONE,
     onImeActionListener: ((EditText) -> Unit)? = null,
     cursorColor: Color = UI.colors.pureInverse,
-    highlightColor: Color = if (UI.colors.isLight) Purple1Light else Purple1Dark,
+    highlightColor: Color = if (UI.colors.isLight) GreenLight else GreenDark,
     focus: InputFieldFocus? = null,
     onTextChanged: (String) -> Unit
 ) {

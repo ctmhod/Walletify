@@ -19,11 +19,11 @@ fun IvyMaterial3Theme(
 }
 
 private fun ivyLightColorScheme(): ColorScheme = ColorScheme(
-    primary = IvyColors.Purple.primary,
+    primary = androidx.compose.ui.graphics.Color(0xFF14CC9E),
     onPrimary = IvyColors.White,
-    primaryContainer = IvyColors.Purple.light,
+    primaryContainer = IvyColors.Green.light,
     onPrimaryContainer = IvyColors.White,
-    inversePrimary = IvyColors.Purple.dark,
+    inversePrimary = IvyColors.Green.dark,
     secondary = IvyColors.Green.primary,
     onSecondary = IvyColors.White,
     secondaryContainer = IvyColors.Green.light,
@@ -54,11 +54,11 @@ private fun ivyLightColorScheme(): ColorScheme = ColorScheme(
 )
 
 private fun ivyDarkColorScheme(isTrueBlack: Boolean): ColorScheme = ColorScheme(
-    primary = IvyColors.Purple.primary,
+    primary = androidx.compose.ui.graphics.Color(0xFF14CC9E),
     onPrimary = IvyColors.White,
-    primaryContainer = IvyColors.Purple.light,
+    primaryContainer = IvyColors.Green.light,
     onPrimaryContainer = IvyColors.White,
-    inversePrimary = IvyColors.Purple.dark,
+    inversePrimary = IvyColors.Green.dark,
     secondary = IvyColors.Green.primary,
     onSecondary = IvyColors.White,
     secondaryContainer = IvyColors.Green.light,

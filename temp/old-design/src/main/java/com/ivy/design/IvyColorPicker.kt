@@ -55,7 +55,7 @@ import com.ivy.design.l0_system.YellowLight
 @Deprecated("Old design system. Use `:ivy-design` and Material3")
 val IVY_COLOR_PICKER_COLORS_FREE = listOf(
     // Primary
-    Ivy, Purple1, Purple2, Blue, Blue2, Blue3,
+    Purple, Purple1, Purple2, Blue, Blue2, Blue3,
     Green, Green2, Green3, Green4, Yellow,
     Orange, Orange2, Orange3, Red, Red2, Red3,
 )

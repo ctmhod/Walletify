@@ -47,6 +47,7 @@ import com.ivy.legacy.utils.selectEndTextFieldValue
 import com.ivy.ui.R
 import com.ivy.wallet.domain.deprecated.logic.model.CreateCategoryData
 import com.ivy.wallet.ui.theme.Ivy
+import com.ivy.wallet.ui.theme.IvyPurple
 import com.ivy.wallet.ui.theme.components.ItemIconMDefaultIcon
 import com.ivy.wallet.ui.theme.components.IvyNameTextField
 import com.ivy.wallet.ui.theme.dynamicContrast
@@ -76,7 +77,7 @@ fun BoxWithConstraintsScope.CategoryModal(
         mutableStateOf(selectEndTextFieldValue(initialCategory?.name?.value))
     }
     var color by remember(modal) {
-        mutableStateOf(initialCategory?.color?.let { Color(it.value) } ?: Ivy)
+        mutableStateOf(initialCategory?.color?.let { Color(it.value) } ?: IvyPurple)
     }
     var icon by remember(modal) {
         mutableStateOf(initialCategory?.icon)

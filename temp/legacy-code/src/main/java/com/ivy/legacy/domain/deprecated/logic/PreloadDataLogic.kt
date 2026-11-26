@@ -24,6 +24,8 @@ import com.ivy.design.l0_system.GreenLight
 import com.ivy.design.l0_system.Ivy
 import com.ivy.design.l0_system.IvyDark
 import com.ivy.design.l0_system.IvyLight
+import com.ivy.design.l0_system.Purple
+import com.ivy.design.l0_system.GreenDark
 import com.ivy.design.l0_system.Orange
 import com.ivy.design.l0_system.Orange2
 import com.ivy.design.l0_system.Orange3
@@ -67,7 +69,7 @@ class PreloadDataLogic @Inject constructor(
         val bank = Account(
             name = stringRes(R.string.bank),
             currency = null,
-            color = IvyDark.toArgb(),
+            color = GreenDark.toArgb(),
             icon = "bank",
             orderNum = 1.0,
             isSynced = false
@@ -91,7 +93,7 @@ class PreloadDataLogic @Inject constructor(
             CreateAccountData(
                 name = stringRes(R.string.bank),
                 currency = baseCurrency,
-                color = IvyDark,
+                color = GreenDark,
                 icon = "bank",
                 balance = 0.0
             ),
@@ -147,7 +149,7 @@ class PreloadDataLogic @Inject constructor(
 
         CreateCategoryData(
             name = stringRes(R.string.shopping),
-            color = Ivy,
+            color = Purple,
             icon = "shopping"
         ),
 

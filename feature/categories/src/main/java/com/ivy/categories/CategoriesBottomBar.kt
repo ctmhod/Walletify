@@ -22,6 +22,7 @@ internal fun BoxWithConstraintsScope.CategoriesBottomBar(
     BackBottomBar(onBack = onClose) {
         IvyButton(
             text = stringResource(R.string.add_category),
+            backgroundGradient = com.ivy.wallet.ui.theme.GradientIvyPurple,
             iconStart = R.drawable.ic_plus
         ) {
             onAddCategory()

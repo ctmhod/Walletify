@@ -42,6 +42,7 @@ import com.ivy.legacy.utils.onScreenStart
 import com.ivy.ui.R
 import com.ivy.wallet.ui.theme.Gradient
 import com.ivy.wallet.ui.theme.Ivy
+import com.ivy.wallet.ui.theme.IvyPurple
 import com.ivy.wallet.ui.theme.Orange
 import com.ivy.wallet.ui.theme.Red
 import com.ivy.wallet.ui.theme.components.ItemIconSDefaultIcon
@@ -292,7 +293,7 @@ private fun PreviewChooseCategoryModal() {
         val categories = mutableListOf(
             Category(
                 name = NotBlankTrimmedString.unsafe("Test"),
-                color = ColorInt(Ivy.toArgb()),
+                color = ColorInt(IvyPurple.toArgb()),
                 icon = null,
                 id = CategoryId(UUID.randomUUID()),
                 orderNum = 0.0,

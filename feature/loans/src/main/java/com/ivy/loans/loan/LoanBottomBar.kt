@@ -65,7 +65,7 @@ internal fun BoxWithConstraintsScope.LoanBottomBar(
             icon = R.drawable.ic_custom_loan_s,
             name = "Pending",
             selected = tab == LoanTab.PENDING,
-            selectedColor = Purple
+            selectedColor = com.ivy.wallet.ui.theme.Ivy
         ) {
             selectTab(LoanTab.PENDING)
         }
