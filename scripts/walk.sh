@@ -12,6 +12,7 @@ alive() { adb shell pidof $PKG >/dev/null 2>&1 && echo alive || { echo "APP DIED
 back() { adb shell input keyevent 4; sleep 2; }
 # onboarding
 python3 $U tap-class CheckBox; sleep 1
+for k in 1 2; do adb shell input swipe 540 1800 540 600 300; sleep 1; done
 adb shell input tap 540 2160; sleep 5
 python3 $U tap-text "Offline account"; sleep 5
 python3 $U tap-text "Start fresh"; sleep 3
