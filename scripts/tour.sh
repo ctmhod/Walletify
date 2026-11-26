@@ -57,7 +57,7 @@ page "Savings goal"
 page "Reports"
 page "Budgets"
 page "Loans"
-gohome; menu; T Settings 3; shot settings
+gohome; menu; python3 $U tap-text Settings; sleep 3; shot settings
 python3 $U tap-text "Import data"; sleep 3; snap import-picker
 adb logcat -d | grep -E "FATAL EXCEPTION" -A10 | head -30 > "$OUT/crash.txt"
 true
