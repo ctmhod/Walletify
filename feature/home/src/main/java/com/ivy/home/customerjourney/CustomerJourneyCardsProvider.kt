@@ -85,7 +85,7 @@ class CustomerJourneyCardsProvider @Inject constructor(
       cta = stringRes(R.string.to_accounts),
       ctaIcon = R.drawable.ic_custom_account_s,
       background = Gradient.solid(Ivy),
-      hasDismiss = false,
+      hasDismiss = true,
       onAction = { _, ivyContext, _ ->
         ivyContext.selectMainTab(MainTab.ACCOUNTS)
       }
