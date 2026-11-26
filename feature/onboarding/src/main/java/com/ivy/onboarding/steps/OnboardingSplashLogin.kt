@@ -85,8 +85,8 @@ fun BoxWithConstraintsScope.OnboardingSplashLogin(
         label = "logoWidth"
     ) {
         when (it) {
-            OnboardingState.SPLASH -> 112.dp
-            else -> 96.dp
+            OnboardingState.SPLASH -> 84.dp
+            else -> 72.dp
         }
     }
 
@@ -97,8 +97,8 @@ fun BoxWithConstraintsScope.OnboardingSplashLogin(
         label = "logoHeight"
     ) {
         when (it) {
-            OnboardingState.SPLASH -> 112.dp
-            else -> 96.dp
+            OnboardingState.SPLASH -> 42.dp
+            else -> 36.dp
         }
     }
 
@@ -174,7 +174,8 @@ fun BoxWithConstraintsScope.OnboardingSplashLogin(
                 .clickableNoIndication(rememberInteractionSource()) {
                     internalSwitch = !internalSwitch
                 },
-            painter = painterResource(id = R.drawable.ivy_wallet_logo),
+            painter = painterResource(id = R.drawable.walletify_w_mark),
+            colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(UI.colors.pureInverse),
             contentScale = ContentScale.Fit,
             contentDescription = "Walletify logo"
         )
