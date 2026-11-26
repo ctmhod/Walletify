@@ -382,6 +382,8 @@ private fun MoreMenuButton(
 
         Text(
             text = label,
+            maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
             style = UI.typo.b2.style(
                 color = tint,
                 fontWeight = FontWeight.ExtraBold
