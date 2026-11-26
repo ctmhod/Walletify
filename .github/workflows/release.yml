@@ -49,6 +49,8 @@ jobs:
           cat > notes.md <<NOTES
           Walletify v$VER, an offline money manager based on Ivy Wallet (GPL-3.0).
 
+          Requires Android 10 (API 29) or newer.
+
           Start with **Walletify-v$VER-0-universal.apk** (works on every device).
           Smaller per-architecture files: arm64-v8a (most phones and tablets), armeabi-v7a (older 32-bit devices), x86_64 (emulators).
           If the install fails with "App not installed", uninstall any older Walletify build first (signing key may differ).

@@ -1,22 +1,22 @@
 package com.ivy.legacy.utils
 
-// Walletify is fully offline: no crash reporting or telemetry.
+import com.ivy.base.errorlog.ErrorLog
+
+// Walletify never sends errors anywhere: they go to the local, redacted error log only.
 fun sendToCrashlytics(
     msg: String
 ) {
-    DeveloperException(msg)
+    ErrorLog.record(msg, DeveloperException(msg))
 }
 
-@Suppress("UnusedReceiverParameter", "UNUSED_PARAMETER")
 fun Exception.sendToCrashlytics(
     clarification: String? = null
 ) {
-    // no-op
+    ErrorLog.record(clarification ?: "Handled error", this)
 }
 
-@Suppress("UNUSED_PARAMETER")
 fun logToCrashlytics(msg: String) {
-    // no-op
+    ErrorLog.record(msg)
 }
 
 class DeveloperException(msg: String) : Exception(msg)

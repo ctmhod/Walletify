@@ -8,11 +8,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -37,6 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ivy.base.errorlog.ErrorLog
 import com.ivy.base.legacy.Theme
 import com.ivy.design.l0_system.UI
 import com.ivy.design.l0_system.style
@@ -448,6 +451,10 @@ private fun BoxWithConstraintsScope.UI(
 
             Spacer(Modifier.height(12.dp))
 
+            ErrorLogButton()
+
+            Spacer(Modifier.height(12.dp))
+
             BasedOnIvy()
 
             Spacer(Modifier.height(16.dp))
@@ -658,6 +665,54 @@ private fun IvyTelegram() {
         iconPadding = 10.dp
     ) {
         rootActivity.openUrlInBrowser(Constants.URL_IVY_TELEGRAM_INVITE)
+    }
+}
+
+@Composable
+private fun ErrorLogButton() {
+    var show by remember { mutableStateOf(false) }
+    SettingsDefaultButton(
+        icon = R.drawable.ic_support,
+        text = "Error log",
+    ) {
+        show = true
+    }
+    if (show) {
+        val context = androidx.compose.ui.platform.LocalContext.current
+        var text by remember { mutableStateOf(ErrorLog.read()) }
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { show = false },
+            title = { Text("Error log") },
+            text = {
+                androidx.compose.foundation.layout.Box(
+                    Modifier
+                        .heightIn(max = 360.dp)
+                        .verticalScroll(androidx.compose.foundation.rememberScrollState())
+                ) {
+                    Text(
+                        text = text.ifBlank { "No errors recorded." },
+                        style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                    )
+                }
+            },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = {
+                    val cm = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE)
+                        as android.content.ClipboardManager
+                    cm.setPrimaryClip(android.content.ClipData.newPlainText("Walletify error log", text))
+                    android.widget.Toast.makeText(context, "Copied", android.widget.Toast.LENGTH_SHORT).show()
+                }) { Text("Copy") }
+            },
+            dismissButton = {
+                Row {
+                    androidx.compose.material3.TextButton(onClick = {
+                        ErrorLog.clear()
+                        text = ""
+                    }) { Text("Clear") }
+                    androidx.compose.material3.TextButton(onClick = { show = false }) { Text("Close") }
+                }
+            },
+        )
     }
 }
 

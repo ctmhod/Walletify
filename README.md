@@ -5,9 +5,11 @@ An offline money manager for Android, based on [Ivy Wallet](https://github.com/I
 ## Changes from Ivy Wallet
 - New name, icon and application id (`com.ctmhod.walletify`), so it installs beside Ivy Wallet.
 - No Firebase, no crash reporting, no telemetry, no polls. Your data stays on the device. The only network use is the optional exchange-rate download.
+- Error log in Settings (Copy and Clear), redacted, also records crashes. Nothing is sent anywhere.
 - Release APKs are split per CPU architecture, plus one universal APK.
 
 ## Download
+Requires Android 10 (API 29) or newer.
 Open the latest release and start with `Walletify-vX-0-universal.apk` (works everywhere).
 Smaller files: `arm64-v8a` (most phones and tablets), `armeabi-v7a` (old 32-bit devices), `x86_64` (emulators).
 
