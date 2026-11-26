@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.ivy.disclaimer.CheckboxViewState
 import com.ivy.disclaimer.composables.AcceptTermsText
 import com.ivy.disclaimer.composables.AgreeButton
-import com.ivy.disclaimer.composables.AgreementCheckBox
+import com.ivy.disclaimer.composables.AgreementTerm
 import com.ivy.disclaimer.composables.DisclaimerTopAppBar
 import com.ivy.navigation.screenScopedViewModel
 
@@ -64,14 +64,9 @@ private fun Content(
                 Spacer(modifier = Modifier.height(4.dp))
                 AcceptTermsText()
             }
-            itemsIndexed(items = viewState.checkboxes) { index, item ->
-                Spacer(modifier = Modifier.height(6.dp))
-                AgreementCheckBox(
-                    viewState = item,
-                    onClick = {
-                        onEvent(DisclaimerViewEvent.OnCheckboxClick(index))
-                    }
-                )
+            itemsIndexed(items = viewState.checkboxes) { _, item ->
+                Spacer(modifier = Modifier.height(8.dp))
+                AgreementTerm(viewState = item)
             }
             item {
                 Spacer(modifier = Modifier.height(16.dp))
