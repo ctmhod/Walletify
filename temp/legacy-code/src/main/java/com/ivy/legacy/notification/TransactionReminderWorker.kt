@@ -3,7 +3,6 @@ package com.ivy.wallet.domain.deprecated.logic.notification
 import android.app.PendingIntent
 import android.content.Context
 import androidx.core.app.NotificationCompat
-import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.ivy.base.legacy.SharedPrefs
@@ -16,22 +15,35 @@ import com.ivy.legacy.utils.atEndOfDay
 import com.ivy.ui.R
 import com.ivy.wallet.android.notification.IvyNotificationChannel
 import com.ivy.wallet.android.notification.NotificationService
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-@HiltWorker
-class TransactionReminderWorker @AssistedInject constructor(
-    @Assisted appContext: Context,
-    @Assisted params: WorkerParameters,
-    private val transactionDao: TransactionDao,
-    private val notificationService: NotificationService,
-    private val sharedPrefs: SharedPrefs,
-    private val appStarter: AppStarter,
-    private val timeProvider: TimeProvider,
-    private val timeConverter: TimeConverter,
+/** Implemented by the Application so the worker does not depend on Hilt worker injection. */
+interface TransactionReminderDepsOwner {
+    fun reminderDeps(): TransactionReminderDeps
+}
+
+class TransactionReminderDeps(
+    val transactionDao: TransactionDao,
+    val notificationService: NotificationService,
+    val sharedPrefs: SharedPrefs,
+    val appStarter: AppStarter,
+    val timeProvider: TimeProvider,
+    val timeConverter: TimeConverter,
+)
+
+class TransactionReminderWorker(
+    appContext: Context,
+    params: WorkerParameters,
 ) : CoroutineWorker(appContext, params) {
+
+    private val deps = (appContext.applicationContext as TransactionReminderDepsOwner).reminderDeps()
+    private val transactionDao get() = deps.transactionDao
+    private val notificationService get() = deps.notificationService
+    private val sharedPrefs get() = deps.sharedPrefs
+    private val appStarter get() = deps.appStarter
+    private val timeProvider get() = deps.timeProvider
+    private val timeConverter get() = deps.timeConverter
 
     companion object {
         const val MINIMUM_TRANSACTIONS_PER_DAY = 1

@@ -22,7 +22,21 @@ private class ErrorLogTree : Timber.Tree() {
  * Created by iliyan on 24.02.18.
  */
 @HiltAndroidApp
-class IvyAndroidApp : Application(), Configuration.Provider {
+class IvyAndroidApp : Application(), Configuration.Provider,
+    com.ivy.wallet.domain.deprecated.logic.notification.TransactionReminderDepsOwner {
+    @Inject lateinit var rTransactionDao: com.ivy.data.db.dao.read.TransactionDao
+    @Inject lateinit var rNotificationService: com.ivy.wallet.android.notification.NotificationService
+    @Inject lateinit var rSharedPrefs: com.ivy.base.legacy.SharedPrefs
+    @Inject lateinit var rAppStarter: com.ivy.domain.AppStarter
+    @Inject lateinit var rTimeProvider: com.ivy.base.time.TimeProvider
+    @Inject lateinit var rTimeConverter: com.ivy.base.time.TimeConverter
+
+    override fun reminderDeps() =
+        com.ivy.wallet.domain.deprecated.logic.notification.TransactionReminderDeps(
+            rTransactionDao, rNotificationService, rSharedPrefs,
+            rAppStarter, rTimeProvider, rTimeConverter
+        )
+
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
 
