@@ -12,8 +12,9 @@ for size in "1080x2400 420" "720x1560 320" "1080x1920 420"; do
     adb shell cmd uimode night $mode
     adb shell pm clear $PKG >/dev/null
     adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
-    sleep 2; snap "splash-$1-night$mode"
-    sleep 8; snap "next-$1-night$mode"
+    sleep 10; snap "agree-$1-night$mode"
+    python3 $U tap-text "Agree to all"; sleep 1; snap "splash-$1-night$mode"
+    sleep 5; snap "login-$1-night$mode"
   done
 done
 adb shell wm size 1080x2400; adb shell wm density 420; adb shell cmd uimode night no
