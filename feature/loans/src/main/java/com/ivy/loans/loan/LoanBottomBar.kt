@@ -102,7 +102,7 @@ internal fun BoxWithConstraintsScope.LoanBottomBar(
             .zIndex(ZINDEX),
         backgroundPadding = 8.dp,
         icon = R.drawable.ic_add,
-        backgroundGradient = GradientPurple,
+        backgroundGradient = com.ivy.wallet.ui.theme.GradientIvy,
         hasShadow = true,
         tint = White
     ) {
