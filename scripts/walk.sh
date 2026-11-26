@@ -15,7 +15,7 @@ for k in $(seq 1 30); do
   T=$(python3 $U texts)
   case "$T" in *"Adjust your initial balance"*|*"No transactions"*) break;; esac
   case "$T" in
-    *"Important User Agreement"*)
+    *"I recognize this app"*)
       python3 $U tap-class CheckBox; sleep 1
       for j in 1 2; do adb shell input swipe 540 1800 540 600 300; sleep 1; done
       adb shell input tap 540 2160; sleep 4;;
