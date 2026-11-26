@@ -8,7 +8,6 @@ object Constants {
 
     const val URL_IVY_WALLET_REPO = "https://github.com/ctmhod/Walletify"
 
-    const val URL_UPSTREAM_IVY_WALLET = "https://github.com/Ivy-Apps/ivy-wallet"
 
     const val URL_WALLETIFY_RELEASES = "https://github.com/ctmhod/Walletify/releases"
 
