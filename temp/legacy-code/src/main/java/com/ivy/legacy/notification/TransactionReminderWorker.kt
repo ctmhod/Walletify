@@ -82,5 +82,5 @@ class TransactionReminderWorker @AssistedInject constructor(
         ).shuffled().first()
 
     private fun fetchShowNotifications(): Boolean =
-        sharedPrefs.getBoolean(SharedPrefs.SHOW_NOTIFICATIONS, true)
+        sharedPrefs.getBoolean(SharedPrefs.SHOW_NOTIFICATIONS, false)
 }

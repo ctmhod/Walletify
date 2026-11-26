@@ -57,6 +57,7 @@ class SettingsViewModel @Inject constructor(
     private val updateSettingsAct: UpdateSettingsAct,
     private val settingsWriter: WriteSettingsDao,
     private val exportCsvUseCase: ExportCsvUseCase,
+    private val transactionReminderLogic: com.ivy.wallet.domain.deprecated.logic.notification.TransactionReminderLogic,
     @ApplicationContext private val context: Context
 ) : ComposeViewModel<SettingsState, SettingsEvent>() {
 
@@ -64,7 +65,7 @@ class SettingsViewModel @Inject constructor(
     private val name = mutableStateOf("")
     private val currentTheme = mutableStateOf<Theme>(Theme.AUTO)
     private val lockApp = mutableStateOf(false)
-    private val showNotifications = mutableStateOf(true)
+    private val showNotifications = mutableStateOf(false)
     private val hideCurrentBalance = mutableStateOf(false)
     private val hideIncome = mutableStateOf(false)
     private val treatTransfersAsIncomeExpense = mutableStateOf(false)
@@ -130,7 +131,7 @@ class SettingsViewModel @Inject constructor(
 
     private fun initializeShowNotifications() {
         showNotifications.value = sharedPrefs.getBoolean(
-            SharedPrefs.SHOW_NOTIFICATIONS, true
+            SharedPrefs.SHOW_NOTIFICATIONS, false
         )
     }
 
@@ -332,6 +333,7 @@ class SettingsViewModel @Inject constructor(
 
         viewModelScope.launch {
             sharedPrefs.putBoolean(SharedPrefs.SHOW_NOTIFICATIONS, notificationsShow)
+            if (notificationsShow) transactionReminderLogic.scheduleReminder()
         }
     }
 

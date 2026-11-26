@@ -130,7 +130,7 @@ class BackupDataUseCase @Inject constructor(
     private fun getSharedPrefsData(): HashMap<String, String> {
         val hashmap = HashMap<String, String>()
         hashmap[SharedPrefs.SHOW_NOTIFICATIONS] =
-            sharedPrefs.getBoolean(SharedPrefs.SHOW_NOTIFICATIONS, true).toString()
+            sharedPrefs.getBoolean(SharedPrefs.SHOW_NOTIFICATIONS, false).toString()
 
         hashmap[SharedPrefs.APP_LOCK_ENABLED] =
             sharedPrefs.getBoolean(SharedPrefs.APP_LOCK_ENABLED, false).toString()
@@ -287,7 +287,7 @@ class BackupDataUseCase @Inject constructor(
 
             sharedPrefs.putBoolean(
                 SharedPrefs.SHOW_NOTIFICATIONS,
-                (completeData.sharedPrefs[SharedPrefs.SHOW_NOTIFICATIONS] ?: "true").toBoolean()
+                (completeData.sharedPrefs[SharedPrefs.SHOW_NOTIFICATIONS] ?: "false").toBoolean()
             )
 
             sharedPrefs.putBoolean(

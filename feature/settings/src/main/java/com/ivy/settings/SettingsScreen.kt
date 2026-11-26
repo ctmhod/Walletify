@@ -79,6 +79,12 @@ fun BoxWithConstraintsScope.SettingsScreen() {
     val viewModel: SettingsViewModel = screenScopedViewModel()
     val uiState = viewModel.uiState()
     val rootScreen = rootScreen()
+    val notifContext = androidx.compose.ui.platform.LocalContext.current
+    val notifLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        viewModel.onEvent(SettingsEvent.SetShowNotifications(granted))
+    }
 
     UI(
         currencyCode = uiState.currencyCode,
@@ -110,8 +116,18 @@ fun BoxWithConstraintsScope.SettingsScreen() {
         onSetLockApp = {
             viewModel.onEvent(SettingsEvent.SetLockApp(it))
         },
-        onSetShowNotifications = {
-            viewModel.onEvent(SettingsEvent.SetShowNotifications(it))
+        onSetShowNotifications = { enable ->
+            if (!enable) {
+                viewModel.onEvent(SettingsEvent.SetShowNotifications(false))
+            } else if (android.os.Build.VERSION.SDK_INT < 33 ||
+                androidx.core.content.ContextCompat.checkSelfPermission(
+                    notifContext, android.Manifest.permission.POST_NOTIFICATIONS
+                ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            ) {
+                viewModel.onEvent(SettingsEvent.SetShowNotifications(true))
+            } else {
+                notifLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            }
         },
         onSetHideCurrentBalance = {
             viewModel.onEvent(SettingsEvent.SetHideCurrentBalance(it))
