@@ -37,9 +37,13 @@ snap after-allow-on
 adb shell pm list permissions -g >/dev/null 2>&1
 adb shell dumpsys package $PKG | grep -i "POST_NOTIFICATIONS" | tee -a "$OUT/screens.txt"
 adb shell dumpsys jobscheduler | grep -i "$PKG" | head -20 | tee "$OUT/jobs.txt"
-JID=$(adb shell dumpsys jobscheduler | grep -o "JOB #u0a[0-9]*/[0-9]*: .*$PKG" | head -1 | sed 's/.*\/\([0-9]*\):.*/\1/')
-echo "jobid=$JID" | tee -a "$OUT/screens.txt"
-adb shell cmd jobscheduler run -f $PKG ${JID:-0}; sleep 8
+adb shell dumpsys jobscheduler | grep -n "namespace\|Namespace" | head -5 | tee -a "$OUT/screens.txt"
+for J in $(adb shell dumpsys jobscheduler | grep -o "JOB #u0a[0-9]*/[0-9]*: [0-9a-f]* $PKG" | sed 's/JOB #u0a[0-9]*\/\([0-9]*\):.*/\1/' | sort -u); do
+  echo "run job $J" | tee -a "$OUT/screens.txt"
+  adb shell cmd jobscheduler run -f -n androidx.work.systemjobscheduler $PKG $J 2>&1 | tee -a "$OUT/screens.txt"
+  adb shell cmd jobscheduler run -f $PKG $J 2>&1 | tee -a "$OUT/screens.txt"
+done
+sleep 8
 adb shell input keyevent 3; sleep 1
 adb shell cmd statusbar expand-notifications; sleep 2
 snap notification-shade
