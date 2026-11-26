@@ -34,18 +34,18 @@ crawl() {
   name="$1"; max="$2"
   python3 $U centers > /tmp/centers.txt
   i=0
-  while read x y label && [ $i -lt $max ]; do
+  while read -u 3 x y label && [ $i -lt $max ]; do
     i=$((i+1))
     adb shell input tap $x $y; sleep 3
     snap "$name-$i-$label"; alive "$name-$i-$label"
     back
     # if app left the foreground, relaunch
     adb shell dumpsys window | grep -q "mCurrentFocus.*$PKG" || { adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1; sleep 4; }
-  done < /tmp/centers.txt
+  done 3< /tmp/centers.txt
 }
-crawl home 8
+crawl home 14
 adb shell input tap 840 1840; sleep 3; snap accounts
-crawl accounts 8
+crawl accounts 10
 adb logcat -d > "$OUT/logcat.txt"
 grep -E "FATAL EXCEPTION" -A14 "$OUT/logcat.txt" | head -60 | tee "$OUT/crash.txt"
 true
