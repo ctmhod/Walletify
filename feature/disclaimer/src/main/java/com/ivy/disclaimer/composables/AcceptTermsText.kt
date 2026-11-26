@@ -13,7 +13,7 @@ fun AcceptTermsText(
     Text(
         modifier = modifier,
         text = "Please read and agree to the following terms before using the app:",
-        style = MaterialTheme.typography.bodyLarge,
+        style = MaterialTheme.typography.bodyMedium,
         fontWeight = FontWeight.Bold,
     )
 }

@@ -1,6 +1,10 @@
 package com.ivy.disclaimer
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -51,45 +55,41 @@ private fun Content(
     onEvent: (DisclaimerViewEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn(
-        modifier = modifier.padding(horizontal = 16.dp)
-    ) {
-        item {
-            OpenSourceCard()
+    Column(modifier = modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 16.dp)
+        ) {
+            item {
+                OpenSourceCard()
+            }
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                AcceptTermsText()
+            }
+            itemsIndexed(items = viewState.checkboxes) { index, item ->
+                Spacer(modifier = Modifier.height(10.dp))
+                AgreementCheckBox(
+                    viewState = item,
+                    onClick = {
+                        onEvent(DisclaimerViewEvent.OnCheckboxClick(index))
+                    }
+                )
+            }
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
         }
-        item {
-            Spacer(modifier = Modifier.height(12.dp))
-            AcceptTermsText()
-        }
-        item {
-            Spacer(modifier = Modifier.height(8.dp))
-            AgreementCheckBox(
-                viewState = CheckboxViewState(
-                    text = "Agree to all",
-                    checked = viewState.allChecked
-                ),
-                bold = true,
-                onClick = { onEvent(DisclaimerViewEvent.OnAgreeAllClick) }
-            )
-        }
-        itemsIndexed(items = viewState.checkboxes) { index, item ->
-            Spacer(modifier = Modifier.height(8.dp))
-            AgreementCheckBox(
-                viewState = item,
-                onClick = {
-                    onEvent(DisclaimerViewEvent.OnCheckboxClick(index))
-                }
-            )
-        }
-        item {
-            Spacer(modifier = Modifier.height(12.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+        ) {
             AgreeButton(
-                enabled = viewState.agreeButtonEnabled,
+                enabled = true,
             ) { onEvent(DisclaimerViewEvent.OnAgreeClick) }
-        }
-        item {
-            // To ensure proper scrolling
-            Spacer(modifier = Modifier.height(48.dp))
         }
     }
 }
