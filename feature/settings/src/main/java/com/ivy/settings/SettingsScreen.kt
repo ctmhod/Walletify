@@ -896,8 +896,7 @@ private fun ExportCSV(
     SettingsDefaultButton(
         icon = R.drawable.ic_vue_pc_printer,
         text = stringResource(R.string.export_to_csv),
-        iconPadding = 6.dp,
-        description = stringResource(R.string.do_not_use_for_backup_purposes)
+        iconPadding = 6.dp
     ) {
         onExportToCSV()
     }
