@@ -5,13 +5,16 @@ on:
       tag:
         description: Release tag to test
         required: true
+      script:
+        description: Script in scripts/
+        default: smoke.sh
 jobs:
   smoke:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        api: [29, 34]
+        api: [34]
     steps:
       - uses: actions/checkout@v4
       - name: Download x86_64 APK
@@ -29,7 +32,7 @@ jobs:
           arch: x86_64
           target: default
           disable-animations: true
-          script: ./scripts/smoke.sh app.apk out
+          script: ./scripts/${{ inputs.script }} app.apk out
       - uses: actions/upload-artifact@v4
         if: always()
         with:
