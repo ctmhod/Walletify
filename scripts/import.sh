@@ -59,7 +59,7 @@ python3 $U tap-text "SAVE"; sleep 6
 snap zip-saved
 python3 $U tap-text "Import data"; sleep 4
 snap picker-with-zip
-python3 $U tap-text "WalletifyBackup"; sleep 8
+python3 $U tap-text "Backup_" sub; sleep 8
 snap zip-result
 python3 $U tap-text "Finish"; sleep 3
 snap after-zip-finish
