@@ -63,7 +63,7 @@ class ImportViewModel @Inject constructor(
 
                 ImportStep.RESULT -> {
                     _importStep.value = ImportStep.IMPORT_FROM
-                    true
+                    false
                 }
 
                 null -> false
@@ -72,8 +72,13 @@ class ImportViewModel @Inject constructor(
     }
 
     @ExperimentalStdlibApi
-    fun pickFile(context: Context) {
+    fun pickFile(context: Context, onCancelled: () -> Unit = {}) {
+        ivyContext.onOpenFileCancelled = {
+            ivyContext.onOpenFileCancelled = null
+            onCancelled()
+        }
         ivyContext.openFile { fileUri ->
+            ivyContext.onOpenFileCancelled = null
             viewModelScope.launch {
                 TestIdlingResource.increment()
 

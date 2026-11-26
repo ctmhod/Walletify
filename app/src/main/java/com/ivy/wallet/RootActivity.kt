@@ -305,10 +305,26 @@ class RootActivity : AppCompatActivity(), RootScreen {
             intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
                 type = "*/*"
+                putExtra(
+                    Intent.EXTRA_MIME_TYPES,
+                    arrayOf(
+                        "text/csv",
+                        "text/comma-separated-values",
+                        "application/csv",
+                        "application/vnd.ms-excel",
+                        "text/plain",
+                        "application/zip",
+                        "application/x-zip-compressed",
+                        "application/octet-stream",
+                    )
+                )
             }
         ) { _, intent ->
-            intent?.data?.also {
-                onFileOpened(it)
+            val pickedUri = intent?.data
+            if (pickedUri != null) {
+                onFileOpened(pickedUri)
+            } else {
+                ivyContext.onOpenFileCancelled?.invoke()
             }
         }
 

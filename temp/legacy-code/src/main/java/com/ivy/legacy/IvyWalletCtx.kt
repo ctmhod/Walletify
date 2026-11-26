@@ -151,6 +151,9 @@ class IvyWalletCtx @Inject constructor() : IvyContext() {
     @Deprecated("Legacy code. Don't use it, please.")
     lateinit var openFile: (onOpened: (Uri) -> Unit) -> Unit
 
+    /** Called when the file picker is closed without choosing a file. */
+    var onOpenFileCancelled: (() -> Unit)? = null
+
     // Testing --------------------------------------------------------------------------------------
     @Deprecated("Legacy code. Don't use it, please.")
     fun reset() {

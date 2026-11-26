@@ -46,57 +46,8 @@ fun BoxWithConstraintsScope.ImportFrom(
     onSkip: () -> Unit = {},
     onChooseFile: () -> Unit = {},
 ) {
-    androidx.compose.foundation.layout.Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-            .navigationBarsPadding()
-    ) {
-        val nav = navigation()
-        OnboardingToolbar(
-            hasSkip = hasSkip,
-            onBack = { nav.onBackPressed() },
-            onSkip = onSkip
-        )
-
-        Spacer(Modifier.height(8.dp))
-
-        Text(
-            modifier = Modifier.padding(start = 32.dp, end = 32.dp),
-            text = stringResource(R.string.import_data),
-            style = UI.typo.h2.style(
-                fontWeight = FontWeight.Black
-            )
-        )
-
-        Spacer(Modifier.height(16.dp))
-
-        Text(
-            modifier = Modifier.padding(start = 32.dp, end = 32.dp),
-            text = stringResource(R.string.import_choose_file_hint),
-            style = UI.typo.b2.style(
-                color = UI.colors.pureInverse
-            )
-        )
-
-        Spacer(Modifier.height(24.dp))
-
-        Button(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(64.dp)
-                .padding(horizontal = 16.dp),
-            onClick = onChooseFile
-        ) {
-            Text(
-                text = stringResource(id = R.string.import_choose_file),
-                style = UI.typo.b2.style(
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-            )
-        }
-    }
+    // The system file picker opens right away; nothing to show in between.
+    androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxSize())
 }
 
 @ExperimentalFoundationApi

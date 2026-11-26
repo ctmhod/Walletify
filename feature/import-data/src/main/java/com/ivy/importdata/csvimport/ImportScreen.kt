@@ -37,7 +37,9 @@ fun BoxWithConstraintsScope.ImportCSVScreen(screen: ImportScreen) {
 
     androidx.compose.runtime.LaunchedEffect(Unit) {
         if (viewModel.importStep.value == null || viewModel.importStep.value == ImportStep.IMPORT_FROM) {
-            viewModel.pickFile(context)
+            viewModel.pickFile(context) {
+            viewModel.skip(screen = screen, onboardingViewModel = onboardingViewModel)
+        }
         }
     }
 
@@ -48,8 +50,12 @@ fun BoxWithConstraintsScope.ImportCSVScreen(screen: ImportScreen) {
         importProgressPercent = importProgressPercent,
         importResult = importResult,
 
-        onChooseFile = { viewModel.pickFile(context) },
-        onUploadCSVFile = { viewModel.pickFile(context) },
+        onChooseFile = { viewModel.pickFile(context) {
+            viewModel.skip(screen = screen, onboardingViewModel = onboardingViewModel)
+        } },
+        onUploadCSVFile = { viewModel.pickFile(context) {
+            viewModel.skip(screen = screen, onboardingViewModel = onboardingViewModel)
+        } },
         onSkip = {
             viewModel.skip(
                 screen = screen,
