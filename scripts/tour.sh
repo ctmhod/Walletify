@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -u
+
 APK="$1"; PKG=com.ctmhod.walletify; OUT="$2"; mkdir -p "$OUT"; U=scripts/ui.py
 adb logcat -c
 adb install -r "$APK" | tee "$OUT/install.txt"
@@ -34,18 +34,18 @@ snap() { n=$((n+1)); adb exec-out screencap -p > "$OUT/$(printf %02d $n)-$1.png"
 shot() {
   snap "$1"; prev=$(python3 $U texts | md5sum)
   for k in 2 3 4 5; do
-    adb shell input swipe 540 1700 540 600 400; sleep 1.5
+    adb shell input swipe 540 1500 540 500 400; sleep 1.5
     cur=$(python3 $U texts | md5sum); [ "$cur" = "$prev" ] && break
     snap "$1-part$k"; prev=$cur
   done
-  for k in 1 2 3 4 5; do adb shell input swipe 540 500 540 1800 300; done; sleep 1
+  for k in 1 2 3 4 5; do adb shell input swipe 540 500 540 1500 300; done; sleep 1
 }
 opendrawer() { python3 $U centers > /tmp/c0.txt; l=$(awk '$1>900 && $2<300 {print; exit}' /tmp/c0.txt); set -- $l; adb shell input tap $1 $2; sleep 3; }
 python3 $U tap-text prompt_dismiss; sleep 2
 shot home
 python3 $U tap-xy 540 1767; sleep 3
 shot add-transaction-menu
-back
+python3 $U tap-text close; sleep 2
 python3 $U tap-xy 846 1840; sleep 3
 shot accounts-tab
 python3 $U tap-xy 233 1840; sleep 2
