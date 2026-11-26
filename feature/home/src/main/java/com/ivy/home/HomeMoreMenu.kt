@@ -6,13 +6,11 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -37,9 +35,7 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.ivy.base.legacy.Theme
@@ -295,119 +291,84 @@ private fun QuickAccess(
             style = UI.typo.b2.style()
         )
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(12.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.Top
+        MoreMenuButton(
+            icon = R.drawable.home_more_menu_settings,
+            label = stringResource(R.string.settings)
         ) {
-            Spacer(Modifier.weight(1f))
-
-            MoreMenuButton(
-                icon = R.drawable.home_more_menu_settings,
-                label = stringResource(R.string.settings)
-            ) {
-                nav.navigateTo(SettingsScreen)
-            }
-
-            Spacer(Modifier.weight(1f))
-
-            MoreMenuButton(
-                icon = R.drawable.home_more_menu_categories,
-                label = stringResource(R.string.categories)
-            ) {
-                nav.navigateTo(CategoriesScreen)
-            }
-
-            Spacer(Modifier.weight(1f))
-
-            MoreMenuButton(
-                icon = when (theme) {
-                    Theme.LIGHT -> R.drawable.home_more_menu_light_mode
-                    Theme.DARK -> R.drawable.home_more_menu_dark_mode
-                    Theme.AMOLED_DARK -> R.drawable.home_more_menu_amoled_dark_mode
-                    Theme.AUTO -> R.drawable.home_more_menu_auto_mode
-                },
-                label = when (theme) {
-                    Theme.LIGHT -> stringResource(R.string.light_mode)
-                    Theme.DARK -> stringResource(R.string.dark_mode)
-                    Theme.AMOLED_DARK -> stringResource(R.string.amoled_mode)
-                    Theme.AUTO -> stringResource(R.string.auto_mode)
-                },
-                backgroundColor = when (theme) {
-                    Theme.LIGHT -> UI.colors.pure
-                    Theme.DARK -> UI.colors.pureInverse
-                    Theme.AMOLED_DARK -> UI.colors.pureInverse
-                    Theme.AUTO -> UI.colors.pure
-                },
-                tint = when (theme) {
-                    Theme.LIGHT -> UI.colors.pureInverse
-                    Theme.DARK -> UI.colors.pure
-                    Theme.AMOLED_DARK -> UI.colors.pure
-                    Theme.AUTO -> UI.colors.pureInverse
-                }
-            ) {
-                onSwitchTheme()
-            }
-
-            Spacer(Modifier.weight(1f))
-
-            MoreMenuButton(
-                icon = R.drawable.home_more_menu_planned_payments,
-                label = stringResource(R.string.planned_payments)
-            ) {
-                nav.navigateTo(PlannedPaymentsScreen)
-            }
-
-            Spacer(Modifier.weight(1f))
+            nav.navigateTo(SettingsScreen)
         }
 
-        Spacer(Modifier.height(16.dp))
-
-        // Second Row
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.Top
+        MoreMenuButton(
+            icon = R.drawable.home_more_menu_categories,
+            label = stringResource(R.string.categories)
         ) {
-            Spacer(Modifier.weight(1f))
+            nav.navigateTo(CategoriesScreen)
+        }
 
-            MoreMenuButton(
-                icon = R.drawable.home_more_menu_savings_goal,
-                label = stringResource(R.string.savings_goal)
-            ) {
-                onSavingsGoalClick()
+        MoreMenuButton(
+            icon = when (theme) {
+                Theme.LIGHT -> R.drawable.home_more_menu_light_mode
+                Theme.DARK -> R.drawable.home_more_menu_dark_mode
+                Theme.AMOLED_DARK -> R.drawable.home_more_menu_amoled_dark_mode
+                Theme.AUTO -> R.drawable.home_more_menu_auto_mode
+            },
+            label = when (theme) {
+                Theme.LIGHT -> stringResource(R.string.light_mode)
+                Theme.DARK -> stringResource(R.string.dark_mode)
+                Theme.AMOLED_DARK -> stringResource(R.string.amoled_mode)
+                Theme.AUTO -> stringResource(R.string.auto_mode)
+            },
+            backgroundColor = when (theme) {
+                Theme.LIGHT -> UI.colors.pure
+                Theme.DARK -> UI.colors.pureInverse
+                Theme.AMOLED_DARK -> UI.colors.pureInverse
+                Theme.AUTO -> UI.colors.pure
+            },
+            tint = when (theme) {
+                Theme.LIGHT -> UI.colors.pureInverse
+                Theme.DARK -> UI.colors.pure
+                Theme.AMOLED_DARK -> UI.colors.pure
+                Theme.AUTO -> UI.colors.pureInverse
             }
+        ) {
+            onSwitchTheme()
+        }
 
-            Spacer(Modifier.weight(1f))
+        MoreMenuButton(
+            icon = R.drawable.home_more_menu_planned_payments,
+            label = stringResource(R.string.planned_payments)
+        ) {
+            nav.navigateTo(PlannedPaymentsScreen)
+        }
 
-            MoreMenuButton(
-                icon = R.drawable.home_more_menu_reports,
-                label = stringResource(R.string.reports),
-            ) {
-                nav.navigateTo(ReportScreen)
-            }
+        MoreMenuButton(
+            icon = R.drawable.home_more_menu_savings_goal,
+            label = stringResource(R.string.savings_goal)
+        ) {
+            onSavingsGoalClick()
+        }
 
-            Spacer(Modifier.weight(1f))
+        MoreMenuButton(
+            icon = R.drawable.home_more_menu_reports,
+            label = stringResource(R.string.reports),
+        ) {
+            nav.navigateTo(ReportScreen)
+        }
 
-            MoreMenuButton(
-                icon = R.drawable.home_more_menu_budgets,
-                label = stringResource(R.string.budgets),
-            ) {
-                nav.navigateTo(BudgetScreen)
-            }
+        MoreMenuButton(
+            icon = R.drawable.home_more_menu_budgets,
+            label = stringResource(R.string.budgets),
+        ) {
+            nav.navigateTo(BudgetScreen)
+        }
 
-            Spacer(Modifier.weight(1f))
-
-            MoreMenuButton(
-                icon = R.drawable.home_more_menu_loans,
-                label = stringResource(R.string.loans),
-            ) {
-                nav.navigateTo(LoansScreen)
-            }
-
-            Spacer(Modifier.weight(1f))
+        MoreMenuButton(
+            icon = R.drawable.home_more_menu_loans,
+            label = stringResource(R.string.loans),
+        ) {
+            nav.navigateTo(LoansScreen)
         }
     }
 }
@@ -419,34 +380,31 @@ private fun MoreMenuButton(
 
     backgroundColor: Color = UI.colors.pure,
     tint: Color = UI.colors.pureInverse,
-    expandPadding: Dp = 14.dp,
 
     onClick: () -> Unit
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .clip(UI.shapes.r4)
+            .background(backgroundColor)
+            .clickable { onClick() }
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        CircleButtonFilled(
+        IvyIcon(
             icon = icon,
-            backgroundColor = backgroundColor,
-            tint = tint,
-            clickAreaPadding = expandPadding,
-            onClick = onClick
+            tint = tint
         )
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.width(16.dp))
 
         Text(
-            modifier = Modifier
-                .defaultMinSize(minWidth = 92.dp)
-                .clickableNoIndication(rememberInteractionSource()) {
-                    onClick()
-                },
             text = label,
-            style = UI.typo.c.style(
-                color = UI.colors.pureInverse,
-                fontWeight = FontWeight.ExtraBold,
-                textAlign = TextAlign.Center
+            style = UI.typo.b2.style(
+                color = tint,
+                fontWeight = FontWeight.ExtraBold
             )
         )
     }

@@ -34,5 +34,10 @@ python3 $U centers > /tmp/c0.txt; set -- $(sed -n 7p /tmp/c0.txt); adb shell inp
 snap menu
 python3 $U tap-text "Savings goal"; sleep 3
 snap savings-goal-tapped
+back; sleep 2
+python3 $U tap-text "Light mode"; sleep 3
+snap theme-switched
+adb shell input swipe 540 1500 540 700 300; sleep 1
+adb exec-out screencap -p > "$OUT/zz-menu-dark.png"
 adb logcat -d | grep -E "FATAL EXCEPTION" -A10 | head -30 > "$OUT/crash.txt"
 true
