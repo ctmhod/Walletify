@@ -19,7 +19,6 @@ import com.ivy.disclaimer.composables.AgreeButton
 import com.ivy.disclaimer.composables.AgreementCheckBox
 import com.ivy.disclaimer.composables.DisclaimerTopAppBar
 import com.ivy.navigation.screenScopedViewModel
-import com.ivy.ui.component.OpenSourceCard
 
 @Composable
 fun DisclaimerScreenImpl() {
@@ -62,10 +61,7 @@ private fun Content(
                 .padding(horizontal = 16.dp)
         ) {
             item {
-                OpenSourceCard()
-            }
-            item {
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 AcceptTermsText()
             }
             itemsIndexed(items = viewState.checkboxes) { index, item ->
