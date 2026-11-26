@@ -252,10 +252,10 @@ private fun BoxWithConstraintsScope.UI(
             Spacer(Modifier.height(16.dp))
 
             val nav = navigation()
-            SettingsPrimaryButton(
+            SettingsDefaultButton(
                 icon = R.drawable.ic_export_csv,
                 text = stringResource(R.string.import_data),
-                backgroundGradient = GradientGreen
+                iconPadding = 8.dp
             ) {
                 nav.navigateTo(
                     ImportScreen(
