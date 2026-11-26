@@ -55,8 +55,15 @@ snap after-bad-finish
 # export data (zip) to see the share sheet
 python3 $U tap-text "Export data"; sleep 5
 snap export-data-sheet
+python3 $U tap-text "SAVE"; sleep 6
+snap zip-saved
+python3 $U tap-text "Import data"; sleep 4
+snap picker-with-zip
+python3 $U tap-text "WalletifyBackup"; sleep 8
+snap zip-result
+python3 $U tap-text "Finish"; sleep 3
+snap after-zip-finish
+adb shell ls /sdcard/Download | tee "$OUT/downloads.txt"
 adb logcat -d | grep -E "FATAL EXCEPTION" -A10 | head -30 > "$OUT/crash.txt"
 true
 
-adb shell input keyevent 4; sleep 2
-snap sheet-dismissed

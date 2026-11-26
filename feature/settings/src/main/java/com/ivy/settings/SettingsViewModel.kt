@@ -270,7 +270,7 @@ class SettingsViewModel @Inject constructor(
 
     private fun exportToCSV(rootScreen: RootScreen) {
         ivyContext.createNewFile(
-            "IvyWalletExport_${
+            "WalletifyExport_${
                 timeNowUTC().getISOFormattedDateTime()
             }.csv"
         ) { fileUri ->
@@ -288,7 +288,7 @@ class SettingsViewModel @Inject constructor(
 
     private fun exportToZip(rootScreen: RootScreen) {
         ivyContext.createNewFile(
-            "IvyWalletBackup_${
+            "WalletifyBackup_${
                 timeNowUTC().getISOFormattedDateTime()
             }.zip"
         ) { fileUri ->
