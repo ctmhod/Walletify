@@ -58,6 +58,13 @@ if __name__ == '__main__':
                 k = (x // 40, y // 40)
                 if k in seen: continue
                 seen.add(k); print(x, y, (n.get('text') or n.get('content-desc') or '-').replace(' ', '_'))
+    elif cmd == 'tap-bottom':
+        best = None
+        for n in nodes(root):
+            if n.get('clickable') == 'true' and n.get('class', '').endswith('View'):
+                x, y = center(n.get('bounds'))
+                if best is None or y > best[1]: best = (x, y)
+        if best: tap(*best); print('tapped bottom', best)
     elif cmd == 'tap-class':
         c = 0
         for n in nodes(root):
