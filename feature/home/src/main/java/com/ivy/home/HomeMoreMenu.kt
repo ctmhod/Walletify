@@ -74,11 +74,9 @@ import com.ivy.navigation.navigation
 import com.ivy.ui.R
 import com.ivy.wallet.ui.theme.Blue
 import com.ivy.wallet.ui.theme.Gray
-import com.ivy.wallet.ui.theme.components.BufferBattery
 import com.ivy.wallet.ui.theme.components.CircleButtonFilled
 import com.ivy.wallet.ui.theme.components.IvyIcon
 import com.ivy.wallet.ui.theme.modal.AddModalBackHandling
-import com.ivy.wallet.ui.theme.wallet.AmountCurrencyB1
 import java.util.UUID
 import kotlin.math.roundToInt
 
@@ -248,16 +246,7 @@ private fun ColumnScope.Content(
         onSavingsGoalClick = onBufferClick
     )
 
-    Spacer(Modifier.height(40.dp))
-
-    Buffer(
-        buffer = buffer,
-        currency = currency,
-        balance = balance,
-        onBufferClick = onBufferClick
-    )
-
-    Spacer(Modifier.height(16.dp))
+    Spacer(Modifier.height(24.dp))
 
     OpenSource()
 
@@ -346,57 +335,6 @@ private fun ColumnScope.OpenSource() {
                     color = Blue
                 )
             )
-        }
-    }
-}
-
-@Composable
-private fun ColumnScope.Buffer(
-    buffer: Double,
-    currency: String,
-    balance: Double,
-    onBufferClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickableNoIndication(rememberInteractionSource()) {
-                onBufferClick()
-            }
-            .testTag("savings_goal_row"),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Spacer(Modifier.width(24.dp))
-
-        Text(
-            text = stringResource(R.string.savings_goal),
-            style = UI.typo.b1.style(
-                color = UI.colors.pureInverse,
-                fontWeight = FontWeight.ExtraBold
-            )
-        )
-
-        Spacer(Modifier.weight(1f))
-
-        AmountCurrencyB1(
-            amount = buffer,
-            currency = currency,
-            amountFontWeight = FontWeight.ExtraBold
-        )
-
-        Spacer(Modifier.width(32.dp))
-    }
-
-    Spacer(Modifier.height(12.dp))
-
-    if (buffer > 0.0 && balance != 0.0) {
-        BufferBattery(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            buffer = buffer,
-            currency = currency,
-            balance = balance,
-        ) {
-            onBufferClick()
         }
     }
 }
