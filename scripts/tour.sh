@@ -57,7 +57,7 @@ for sec in "Categories" "Planned Payments" "Savings goal" "Reports" "Budgets" "L
   adb shell dumpsys window | grep -q "mCurrentFocus.*$PKG" || { adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1; sleep 4; }
   python3 $U texts | grep -q "Quick access" || opendrawer
 done
-python3 $U tap-xy 975 130 ; sleep 3   # gear
+python3 $U tap-xy 967 433; sleep 3
 shot settings
 python3 $U tap-text "Import data"; sleep 3
 shot import-picker
