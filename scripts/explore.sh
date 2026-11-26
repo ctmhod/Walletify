@@ -17,9 +17,10 @@ python3 $U tap-class CheckBox; sleep 2; snap checkboxes
 
 swipe_up; swipe_up; snap scrolled
 adb shell input tap $((W/2)) $((H*90/100)); sleep 5; snap accepted
-for k in $(seq 1 14); do
+python3 $U tap-text "Offline account"; sleep 6; snap offline
+for k in $(seq 1 10); do
   hit=0
-  for t in "Continue" "Next" "Skip" "Done" "Finish" "Start" "Get started" "Let's go" "Later" "Not now" "OK" "Close" "Maybe later" "No thanks" "Set" "Create"; do python3 $U tap-text "$t" && { sleep 3; snap "step$k-$t"; hit=1; break; }; done
+  for t in "Offline account" "Continue" "Next" "Skip" "Done" "Finish" "Start" "Get started" "Let's go" "Later" "Not now" "OK" "Close" "Maybe later" "No thanks" "Set" "Create"; do python3 $U tap-text "$t" && { sleep 3; snap "step$k-$t"; hit=1; break; }; done
   if [ $hit = 0 ]; then adb shell input tap $((W/2)) $((H*90/100)); sleep 3; snap "step$k-bottom"; fi
 done
 adb logcat -d > "$OUT/logcat.txt"
