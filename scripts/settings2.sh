@@ -30,7 +30,7 @@ for k in $(seq 1 12); do
 done
 snap home
 python3 $U tap-text prompt_dismiss; sleep 2
-python3 $U centers > /tmp/c0.txt; set -- $(sed -n 7p /tmp/c0.txt); adb shell input tap $1 $2; sleep 3
+python3 $U centers > /tmp/c0.txt; set -- $(awk '$1>900 && $2<300 {print; exit}' /tmp/c0.txt); adb shell input tap $1 $2; sleep 3
 python3 $U tap-text "Settings"; sleep 3
 snap settings-top
 for k in 1 2 3 4 5 6 7 8 9 10 11 12; do adb shell input swipe 540 1800 540 500 200; sleep 1; done

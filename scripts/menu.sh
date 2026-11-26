@@ -30,7 +30,7 @@ for k in $(seq 1 12); do
 done
 snap home
 python3 $U tap-text prompt_dismiss; sleep 2
-python3 $U centers > /tmp/c0.txt; set -- $(sed -n 7p /tmp/c0.txt); adb shell input tap $1 $2; sleep 3
+python3 $U centers > /tmp/c0.txt; set -- $(awk '$1>900 && $2<300 {print; exit}' /tmp/c0.txt); adb shell input tap $1 $2; sleep 3
 snap menu
 python3 $U tap-text "Savings goal"; sleep 3
 snap savings-goal-tapped

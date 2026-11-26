@@ -43,7 +43,7 @@ crawl() {
     adb shell dumpsys window | grep -q "mCurrentFocus.*$PKG" || { adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1; sleep 4; }
   done 3< /tmp/centers.txt
 }
-opendrawer() { python3 $U centers > /tmp/c0.txt; l=$(sed -n 7p /tmp/c0.txt); set -- $l; adb shell input tap $1 $2; sleep 3; }
+opendrawer() { python3 $U centers > /tmp/c0.txt; l=$(awk '$1>900 && $2<300 {print; exit}' /tmp/c0.txt); set -- $l; adb shell input tap $1 $2; sleep 3; }
 for sec in Settings Categories Reports Budgets Loans "Planned Payments"; do
   opendrawer
   python3 $U tap-text "$sec"; sleep 3
