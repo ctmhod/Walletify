@@ -1,0 +1,143 @@
+name: Release v0.1.42
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Patch import flow and bump version
+        run: |
+          cat > /tmp/patch.py <<'PY_EOF'
+          import re
+          def sub(p,a,b,cnt=1):
+              t=open(p,encoding='utf-8').read()
+              assert t.count(a)==cnt,(p,a[:40],t.count(a))
+              open(p,'w',encoding='utf-8').write(t.replace(a,b))
+          # 1) cancel callback in the legacy context
+          sub('temp/legacy-code/src/main/java/com/ivy/legacy/IvyWalletCtx.kt',
+           '    lateinit var openFile: (onOpened: (Uri) -> Unit) -> Unit\n',
+           '    lateinit var openFile: (onOpened: (Uri) -> Unit) -> Unit\n\n    /** Called when the file picker is closed without choosing a file. */\n    var onOpenFileCancelled: (() -> Unit)? = null\n')
+          # 2) picker: CSV and ZIP types, report cancel
+          R='app/src/main/java/com/ivy/wallet/RootActivity.kt'
+          sub(R,'''                addCategory(Intent.CATEGORY_OPENABLE)
+                          type = "*/*"
+                      }
+                  ) { _, intent ->
+                      intent?.data?.also {
+                          onFileOpened(it)
+                      }
+                  }
+          ''','''                addCategory(Intent.CATEGORY_OPENABLE)
+                          type = "*/*"
+                          putExtra(
+                              Intent.EXTRA_MIME_TYPES,
+                              arrayOf(
+                                  "text/csv",
+                                  "text/comma-separated-values",
+                                  "application/csv",
+                                  "application/vnd.ms-excel",
+                                  "text/plain",
+                                  "application/zip",
+                                  "application/x-zip-compressed",
+                                  "application/octet-stream",
+                              )
+                          )
+                      }
+                  ) { _, intent ->
+                      val pickedUri = intent?.data
+                      if (pickedUri != null) {
+                          onFileOpened(pickedUri)
+                      } else {
+                          ivyContext.onOpenFileCancelled?.invoke()
+                      }
+                  }
+          ''')
+          # 3) view model
+          V='feature/import-data/src/main/java/com/ivy/importdata/csvimport/ImportViewModel.kt'
+          sub(V,'    fun pickFile(context: Context) {\n        ivyContext.openFile { fileUri ->\n',
+           '    fun pickFile(context: Context, onCancelled: () -> Unit = {}) {\n        ivyContext.onOpenFileCancelled = {\n            ivyContext.onOpenFileCancelled = null\n            onCancelled()\n        }\n        ivyContext.openFile { fileUri ->\n            ivyContext.onOpenFileCancelled = null\n')
+          sub(V,'''                ImportStep.RESULT -> {
+                              _importStep.value = ImportStep.IMPORT_FROM
+                              true
+                          }''','''                ImportStep.RESULT -> {
+                              _importStep.value = ImportStep.IMPORT_FROM
+                              false
+                          }''')
+          # 4) screen
+          S='feature/import-data/src/main/java/com/ivy/importdata/csvimport/ImportScreen.kt'
+          t=open(S,encoding='utf-8').read()
+          assert t.count('viewModel.pickFile(context)')==3
+          t=t.replace('viewModel.pickFile(context)','viewModel.pickFile(context) {\n            viewModel.skip(screen = screen, onboardingViewModel = onboardingViewModel)\n        }')
+          open(S,'w',encoding='utf-8').write(t)
+          # 5) the old intermediate screen shows nothing
+          F='feature/import-data/src/main/java/com/ivy/importdata/csvimport/flow/ImportFrom.kt'
+          t=open(F,encoding='utf-8').read()
+          i=t.index('    androidx.compose.foundation.layout.Column(')
+          j=t.index('@ExperimentalFoundationApi\n@Preview')
+          t=t[:i]+'    // The system file picker opens right away; nothing to show in between.\n    androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxSize())\n}\n\n'+t[j:]
+          open(F,'w',encoding='utf-8').write(t)
+          PY_EOF
+          python3 /tmp/patch.py
+          sed -i 's/^version-name = ".*"/version-name = "0.1.42"/; s/^version-code = ".*"/version-code = "43"/' gradle/libs.versions.toml
+          grep -n '^version-' gradle/libs.versions.toml
+          git diff --stat
+      - name: Decode keystore
+        run: echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > sign.jks
+      - name: Build
+        env:
+          SIGNING_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: walletify
+        run: ./gradlew :app:assembleRelease --no-daemon -Dorg.gradle.jvmargs=-Xmx4g
+      - name: Package and verify
+        run: |
+          VER=0.1.42
+          mkdir out
+          for f in app/build/outputs/apk/release/*.apk; do
+            n=$(basename "$f" .apk)
+            abi=${n#app-}; abi=${abi%-release}
+            if [ "$abi" = "universal" ]; then dest="Walletify-v$VER-0-universal.apk"; else dest="Walletify-v$VER-$abi.apk"; fi
+            cp "$f" "out/$dest"
+          done
+          AAPT=$(ls $ANDROID_HOME/build-tools/*/aapt | tail -1)
+          APKSIGNER=$(ls $ANDROID_HOME/build-tools/*/apksigner | tail -1)
+          for f in out/*.apk; do
+            echo "== $f ($(stat -c%s "$f") bytes)"
+            $APKSIGNER verify --print-certs "$f" | grep -E "SHA-256|Verifies"
+            $AAPT dump badging "$f" | grep -E "^package|sdkVersion|native-code"
+          done
+      - name: Commit and push source change
+        run: |
+          rm -f sign.jks
+          git add -A feature gradle app temp
+          git -c user.name="ctmhod" -c user.email="290202009+ctmhod@users.noreply.github.com" commit -q -m "Import: open the system file picker directly (v0.1.42)"
+          git pull --rebase origin main || true
+          git push origin HEAD:main
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VER=0.1.42
+          cat > notes.md <<NOTES
+          Walletify v$VER, an offline money manager for Android.
+
+          Change: Import now opens the Android file picker right away (CSV or backup ZIP). The extra "Choose a file" screen is gone.
+
+          Requires Android 10 (API 29) or newer.
+
+          Start with **Walletify-v$VER-0-universal.apk** (works on every device).
+          Smaller per-architecture files: arm64-v8a (most phones and tablets), armeabi-v7a (older 32-bit devices), x86_64 (emulators).
+          If the install fails with "App not installed", uninstall any older Walletify build first (signing key may differ).
+          NOTES
+          sed -i 's/^ *//' notes.md
+          gh release create "v$VER" out/*.apk --target main --title "Walletify v$VER" --notes-file notes.md
