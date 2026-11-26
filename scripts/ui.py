@@ -50,5 +50,7 @@ if __name__ == '__main__':
             if n.get('checkable') == 'true' and n.get('checked') == 'false':
                 tap(*center(n.get('bounds'))); c += 1
         print('checked', c)
+    elif cmd == 'clickables':
+        print(' | '.join((n.get('text') or n.get('content-desc') or n.get('class').split('.')[-1]) + '@' + n.get('bounds') for n in nodes(root) if n.get('clickable') == 'true'))
     elif cmd == 'tap-xy':
         tap(sys.argv[2], sys.argv[3])
