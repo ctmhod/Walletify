@@ -390,13 +390,15 @@ private fun ColumnScope.Buffer(
 
     Spacer(Modifier.height(12.dp))
 
-    BufferBattery(
-        modifier = Modifier.padding(horizontal = 16.dp),
-        buffer = buffer,
-        currency = currency,
-        balance = balance,
-    ) {
-        onBufferClick()
+    if (buffer > 0.0 && balance != 0.0) {
+        BufferBattery(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            buffer = buffer,
+            currency = currency,
+            balance = balance,
+        ) {
+            onBufferClick()
+        }
     }
 }
 
