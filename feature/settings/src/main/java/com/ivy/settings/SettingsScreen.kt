@@ -947,7 +947,7 @@ private fun TCAndPrivacyPolicy() {
             modifier = Modifier
                 .weight(1f)
                 .clip(UI.shapes.rFull)
-                .border(2.dp, UI.colors.medium, UI.shapes.rFull)
+                .background(UI.colors.medium, UI.shapes.rFull)
                 .clickable {
                     uriHandler.openUri(Constants.URL_TC)
                 }
@@ -966,7 +966,7 @@ private fun TCAndPrivacyPolicy() {
             modifier = Modifier
                 .weight(1f)
                 .clip(UI.shapes.rFull)
-                .border(2.dp, UI.colors.medium, UI.shapes.rFull)
+                .background(UI.colors.medium, UI.shapes.rFull)
                 .clickable {
                     uriHandler.openUri(Constants.URL_PRIVACY_POLICY)
                 }
