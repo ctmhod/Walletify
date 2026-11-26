@@ -7,7 +7,7 @@ adb shell wm size 1080x2400; adb shell wm density 420
 adb root >/dev/null 2>&1; sleep 3
 adb shell settings put global auto_time 0; adb shell settings put global auto_time_zone 0
 D=$(date +%m%d)
-adb shell "date ${D}19580026.00" | tee "$OUT/clock.txt"; adb shell date | tee -a "$OUT/clock.txt"
+adb shell "date ${D}19582026.00" | tee "$OUT/clock.txt"; adb shell date | tee -a "$OUT/clock.txt"
 adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
 sleep 10
 n=0
