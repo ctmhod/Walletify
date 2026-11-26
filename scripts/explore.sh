@@ -16,10 +16,11 @@ snap launch
 python3 $U tap-class CheckBox; sleep 2; snap checkboxes
 
 swipe_up; swipe_up; snap scrolled
-for k in 1 2 3 4 5 6 7 8; do
-  done_step=0
-  for t in "Continue" "Next" "Skip" "Done" "Finish" "Start" "Agree" "Accept" "Get started" "Set" "OK" "Close"; do python3 $U tap-text "$t" && { sleep 3; snap "step-$t"; done_step=1; break; }; done
-  [ $done_step = 0 ] && { swipe_up; snap "scroll$k"; }
+adb shell input tap $((W/2)) $((H*90/100)); sleep 5; snap accepted
+for k in $(seq 1 14); do
+  hit=0
+  for t in "Continue" "Next" "Skip" "Done" "Finish" "Start" "Get started" "Let's go" "Later" "Not now" "OK" "Close" "Maybe later" "No thanks" "Set" "Create"; do python3 $U tap-text "$t" && { sleep 3; snap "step$k-$t"; hit=1; break; }; done
+  if [ $hit = 0 ]; then adb shell input tap $((W/2)) $((H*90/100)); sleep 3; snap "step$k-bottom"; fi
 done
 adb logcat -d > "$OUT/logcat.txt"
 adb shell pidof $PKG | tee "$OUT/pid.txt"
