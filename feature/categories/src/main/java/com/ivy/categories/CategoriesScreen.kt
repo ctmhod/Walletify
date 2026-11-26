@@ -733,7 +733,7 @@ private fun Preview(
                 CategoryData(
                     category = Category(
                         id = CategoryId(UUID.randomUUID()),
-                        name = NotBlankTrimmedString.unsafe("Ivy"),
+                        name = NotBlankTrimmedString.unsafe("Walletify"),
                         color = ColorInt(IvyDark.toArgb()),
                         icon = IconAsset.unsafe("star"),
                         orderNum = 0.0,
@@ -813,7 +813,7 @@ private fun PreviewWithSearchBarEnabled(
                 CategoryData(
                     category = Category(
                         id = CategoryId(UUID.randomUUID()),
-                        name = NotBlankTrimmedString.unsafe("Ivy"),
+                        name = NotBlankTrimmedString.unsafe("Walletify"),
                         color = ColorInt(IvyDark.toArgb()),
                         icon = IconAsset.unsafe("star"),
                         orderNum = 0.0,

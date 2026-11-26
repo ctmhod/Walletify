@@ -446,6 +446,10 @@ private fun BoxWithConstraintsScope.UI(
 
             IvyTelegram()
 
+            Spacer(Modifier.height(12.dp))
+
+            BasedOnIvy()
+
             Spacer(Modifier.height(16.dp))
 
             HelpCenter()
@@ -468,10 +472,6 @@ private fun BoxWithConstraintsScope.UI(
             Spacer(Modifier.height(12.dp))
 
             ContactSupport()
-
-            Spacer(Modifier.height(12.dp))
-
-            Contributors(nav = nav)
 
             Spacer(Modifier.height(12.dp))
 
@@ -658,6 +658,18 @@ private fun IvyTelegram() {
         iconPadding = 10.dp
     ) {
         rootActivity.openUrlInBrowser(Constants.URL_IVY_TELEGRAM_INVITE)
+    }
+}
+
+@Composable
+private fun BasedOnIvy() {
+    val rootActivity = rootScreen()
+    SettingsDefaultButton(
+        icon = R.drawable.github_logo,
+        text = "Based on Ivy Wallet (GPL-3.0)",
+        iconPadding = 10.dp,
+    ) {
+        rootActivity.openUrlInBrowser(Constants.URL_UPSTREAM_IVY_WALLET)
     }
 }
 
