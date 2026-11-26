@@ -293,12 +293,6 @@ private fun BoxWithConstraintsScope.UI(
 
             Spacer(Modifier.height(12.dp))
 
-            CurrencyButton(currency = currencyCode) {
-                currencyModalVisible = true
-            }
-
-            Spacer(Modifier.height(12.dp))
-
             val nav = navigation()
 //            SettingsDefaultButton(
 //                icon = R.drawable.ic_custom_atom_m,
@@ -321,6 +315,12 @@ private fun BoxWithConstraintsScope.UI(
 
                 Spacer(Modifier.height(12.dp))
             }
+
+            CurrencyButton(currency = currencyCode) {
+                currencyModalVisible = true
+            }
+
+            Spacer(Modifier.height(12.dp))
 
             SettingsDefaultButton(
                 icon = R.drawable.ic_currency,
