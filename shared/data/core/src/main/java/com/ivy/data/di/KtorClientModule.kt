@@ -5,6 +5,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
@@ -27,8 +28,13 @@ object KtorClientModule {
                 json(json)
             }
 
+            install(HttpTimeout) {
+                connectTimeoutMillis = 8_000
+                requestTimeoutMillis = 20_000
+            }
+
             install(Logging) {
-                level = LogLevel.BODY
+                level = LogLevel.NONE
                 logger = object : Logger {
                     override fun log(message: String) {
                         Timber.d(message)

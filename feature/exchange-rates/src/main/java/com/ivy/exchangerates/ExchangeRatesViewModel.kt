@@ -49,7 +49,9 @@ class ExchangeRatesViewModel @Inject constructor(
         LaunchedEffect(Unit) {
             baseCurrency = currencyRepo.getBaseCurrency().also {
                 viewModelScope.launch {
-                    syncExchangeRatesUseCase.sync(it)
+                    syncExchangeRatesUseCase.sync(it).onLeft {
+                        toaster.show("Could not update rates. Showing the last saved rates.")
+                    }
                 }
             }
         }

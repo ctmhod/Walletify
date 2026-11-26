@@ -37,3 +37,10 @@ The app uses the following open-source projects, icons and fonts. Each is used u
 - [Detekt](https://github.com/detekt/detekt)
 - [Ktlint](https://github.com/pinterest/ktlint)
 - [Slack's compose-lints](https://slackhq.github.io/compose-lints)
+
+## Exchange rates
+
+Rates are downloaded from free, key-less sources and cached on the device:
+
+- [fawazahmed0/exchange-api](https://github.com/fawazahmed0/exchange-api) (CC0), served by jsDelivr and Cloudflare Pages. Daily rates, no rate limits.
+- Fallback: [ExchangeRate-API open access](https://www.exchangerate-api.com) (rates by [ExchangeRate-API](https://www.exchangerate-api.com)). Daily rates, rate limited.
