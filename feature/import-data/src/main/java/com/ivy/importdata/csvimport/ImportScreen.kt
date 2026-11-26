@@ -35,6 +35,12 @@ fun BoxWithConstraintsScope.ImportCSVScreen(screen: ImportScreen) {
     }
     val context = LocalContext.current
 
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        if (viewModel.importStep.value == null || viewModel.importStep.value == ImportStep.IMPORT_FROM) {
+            viewModel.pickFile(context)
+        }
+    }
+
     UI(
         screen = screen,
         importStep = importStep,
@@ -42,8 +48,8 @@ fun BoxWithConstraintsScope.ImportCSVScreen(screen: ImportScreen) {
         importProgressPercent = importProgressPercent,
         importResult = importResult,
 
-        onChooseImportType = viewModel::setImportType,
-        onUploadCSVFile = { viewModel.uploadFile(context) },
+        onChooseFile = { viewModel.pickFile(context) },
+        onUploadCSVFile = { viewModel.pickFile(context) },
         onSkip = {
             viewModel.skip(
                 screen = screen,
@@ -69,7 +75,7 @@ private fun BoxWithConstraintsScope.UI(
     importProgressPercent: Int,
     importResult: ImportResult?,
 
-    onChooseImportType: (ImportType) -> Unit = {},
+    onChooseFile: () -> Unit = {},
     onUploadCSVFile: () -> Unit = {},
     onSkip: () -> Unit = {},
     onFinish: () -> Unit = {},
@@ -80,7 +86,7 @@ private fun BoxWithConstraintsScope.UI(
                 hasSkip = screen.launchedFromOnboarding,
                 launchedFromOnboarding = screen.launchedFromOnboarding,
                 onSkip = onSkip,
-                onImportFrom = onChooseImportType
+                onChooseFile = onChooseFile
             )
         }
 

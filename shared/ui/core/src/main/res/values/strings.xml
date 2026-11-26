@@ -59,6 +59,9 @@
     <string name="check_email_spam">Please check your email\'s "Junk" and "Spam" folders</string>
     <string name="download_email_file">Download the \"transactions_export…\" file attached to the email.</string>
     <string name="download_email_file_description">If you have more than one currency, you\'ll need to download each \'transactions_export...\' file and import them into Walletify.</string>
+    <string name="import_choose_file">Choose a file</string>
+    <string name="import_choose_file_hint">Pick a CSV file or a backup ZIP made by Walletify.</string>
+    <string name="import_file_failed">Could not import this file. Choose a Walletify CSV export or a Walletify backup ZIP.</string>
     <string name="import_from">Import from</string>
     <string name="please_wait">Please wait</string>
     <string name="importing_the_csv_file">Importing the CSV file</string>

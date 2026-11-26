@@ -72,26 +72,37 @@ class ImportViewModel @Inject constructor(
     }
 
     @ExperimentalStdlibApi
-    fun uploadFile(context: Context) {
-        val importType = importType.value ?: return
-
+    fun pickFile(context: Context) {
         ivyContext.openFile { fileUri ->
             viewModelScope.launch {
                 TestIdlingResource.increment()
 
                 _importStep.value = ImportStep.LOADING
+                _importProgressPercent.value = 0
 
-                _importResult.value = if (hasCSVExtension(context, fileUri)) {
-                    restoreCSVFile(fileUri = fileUri, importType = importType)
-                } else {
-                    backupDataUseCase.importBackupFile(
-                        backupFileUri = fileUri
-                    ) { progressPercent ->
-                        com.ivy.legacy.utils.uiThread {
-                            _importProgressPercent.value =
-                                (progressPercent * 100).roundToInt()
+                val kind = detectKind(context, fileUri)
+                _importResult.value = try {
+                    when (kind) {
+                        FileKind.CSV -> restoreCSVFile(
+                            fileUri = fileUri,
+                            importType = ImportType.IVY,
+                            utf16 = hasUtf16Bom(context, fileUri)
+                        )
+
+                        FileKind.ZIP -> backupDataUseCase.importBackupFile(
+                            backupFileUri = fileUri
+                        ) { progressPercent ->
+                            com.ivy.legacy.utils.uiThread {
+                                _importProgressPercent.value =
+                                    (progressPercent * 100).roundToInt()
+                            }
                         }
+
+                        FileKind.OTHER -> emptyResult()
                     }
+                } catch (e: Exception) {
+                    Timber.e(e, "Import failed")
+                    emptyResult()
                 }
 
                 _importStep.value = ImportStep.RESULT
@@ -101,15 +112,59 @@ class ImportViewModel @Inject constructor(
         }
     }
 
+    private enum class FileKind { CSV, ZIP, OTHER }
+
+    private fun emptyResult() = ImportResult(
+        rowsFound = 0,
+        transactionsImported = 0,
+        accountsImported = 0,
+        categoriesImported = 0,
+        failedRows = persistentListOf()
+    )
+
+    private suspend fun detectKind(context: Context, fileUri: Uri): FileKind =
+        com.ivy.legacy.utils.ioThread {
+            val name = context.getFileName(fileUri)?.lowercase().orEmpty()
+            val head = try {
+                context.contentResolver.openInputStream(fileUri)?.use { ins ->
+                    val b = ByteArray(4)
+                    val n = ins.read(b)
+                    if (n >= 2) b.copyOf(n) else ByteArray(0)
+                } ?: ByteArray(0)
+            } catch (e: Exception) {
+                ByteArray(0)
+            }
+            val isZip = head.size >= 2 && head[0] == 'P'.code.toByte() && head[1] == 'K'.code.toByte()
+            when {
+                isZip || name.endsWith(".zip") -> FileKind.ZIP
+                name.endsWith(".csv") -> FileKind.CSV
+                else -> FileKind.OTHER
+            }
+        }
+
+    private suspend fun hasUtf16Bom(context: Context, fileUri: Uri): Boolean =
+        com.ivy.legacy.utils.ioThread {
+            try {
+                context.contentResolver.openInputStream(fileUri)?.use { ins ->
+                    val b0 = ins.read()
+                    val b1 = ins.read()
+                    (b0 == 0xFF && b1 == 0xFE) || (b0 == 0xFE && b1 == 0xFF)
+                } ?: false
+            } catch (e: Exception) {
+                false
+            }
+        }
+
     @ExperimentalStdlibApi
-    private suspend fun restoreCSVFile(fileUri: Uri, importType: ImportType): ImportResult {
+    private suspend fun restoreCSVFile(
+        fileUri: Uri,
+        importType: ImportType,
+        utf16: Boolean
+    ): ImportResult {
         return com.ivy.legacy.utils.ioThread {
             val rawCSV = fileReader.read(
                 uri = fileUri,
-                charset = when (importType) {
-                    ImportType.IVY -> Charsets.UTF_16
-                    else -> Charsets.UTF_8
-                }
+                charset = if (utf16) Charsets.UTF_16 else Charsets.UTF_8
             ).getOrNull()
             if (rawCSV.isNullOrBlank()) {
                 return@ioThread ImportResult(

@@ -95,36 +95,16 @@ fun ImportResultUI(
 
         // TODO: Implement "See failed imports"
 
-        if (!isManualCsvImport) {
+        if (!importSuccess) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 32.dp),
-                text = stringResource(R.string.csv_import_failed),
+                text = stringResource(R.string.import_file_failed),
                 color = UI.colors.pureInverse,
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Button(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp)
-                    .padding(horizontal = 16.dp),
-                onClick = {
-                    nav.navigateTo(CSVScreen(launchedFromOnboarding = launchedFromOnboarding))
-                }
-            ) {
-                Text(
-                    text = stringResource(id = R.string.manual_csv_import),
-                    style = UI.typo.b2.style(
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                )
-            }
         }
 
         Spacer(Modifier.weight(1f))

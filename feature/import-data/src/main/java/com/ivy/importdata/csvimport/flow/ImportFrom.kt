@@ -44,117 +44,59 @@ fun BoxWithConstraintsScope.ImportFrom(
     launchedFromOnboarding: Boolean,
 
     onSkip: () -> Unit = {},
-    onImportFrom: (ImportType) -> Unit = {},
+    onChooseFile: () -> Unit = {},
 ) {
-    val importTypes = ImportType.values()
-
-    LazyColumn(
+    androidx.compose.foundation.layout.Column(
         modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
-        stickyHeader {
-            val nav = navigation()
-            OnboardingToolbar(
-                hasSkip = hasSkip,
-                onBack = { nav.onBackPressed() },
-                onSkip = onSkip
-            )
-            // onboarding toolbar include paddingBottom 16.dp
-        }
-
-        item {
-            Spacer(Modifier.height(8.dp))
-            val nav = navigation()
-            Button(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(64.dp)
-                    .padding(horizontal = 16.dp),
-                onClick = {
-                    nav.navigateTo(CSVScreen(launchedFromOnboarding))
-                }
-            ) {
-                Text(
-                    text = stringResource(id = R.string.manual_csv_import),
-                    style = UI.typo.b2.style(
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                )
-            }
-            Spacer(Modifier.height(16.dp))
-        }
-
-        item {
-            Spacer(Modifier.height(8.dp))
-
-            Text(
-                modifier = Modifier.padding(start = 32.dp),
-                text = stringResource(R.string.import_from),
-                style = UI.typo.h2.style(
-                    fontWeight = FontWeight.Black
-                )
-            )
-
-            Spacer(Modifier.height(24.dp))
-        }
-
-        items(importTypes) {
-            ImportOption(
-                importType = it,
-                onImportFrom = onImportFrom
-            )
-        }
-
-        item {
-            // last spacer
-            Spacer(Modifier.height(96.dp))
-        }
-    }
-
-    GradientCutBottom(
-        height = 96.dp
-    )
-}
-
-@Composable
-private fun ImportOption(
-    importType: ImportType,
-    onImportFrom: (ImportType) -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .clip(UI.shapes.r3)
-            .background(UI.colors.medium, UI.shapes.r3)
-            .clickable {
-                onImportFrom(importType)
-            }
-            .padding(vertical = 24.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Spacer(Modifier.width(20.dp))
-
-        IvyIcon(
-            modifier = Modifier.size(32.dp),
-            icon = importType.logo(),
-            tint = Color.Unspecified
+        val nav = navigation()
+        OnboardingToolbar(
+            hasSkip = hasSkip,
+            onBack = { nav.onBackPressed() },
+            onSkip = onSkip
         )
 
+        Spacer(Modifier.height(8.dp))
+
         Text(
-            modifier = Modifier.padding(start = 16.dp, end = 32.dp),
-            text = importType.listName(),
+            modifier = Modifier.padding(start = 32.dp, end = 32.dp),
+            text = stringResource(R.string.import_data),
+            style = UI.typo.h2.style(
+                fontWeight = FontWeight.Black
+            )
+        )
+
+        Spacer(Modifier.height(16.dp))
+
+        Text(
+            modifier = Modifier.padding(start = 32.dp, end = 32.dp),
+            text = stringResource(R.string.import_choose_file_hint),
             style = UI.typo.b2.style(
-                fontWeight = FontWeight.Bold,
                 color = UI.colors.pureInverse
             )
         )
-    }
 
-    Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(24.dp))
+
+        Button(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(64.dp)
+                .padding(horizontal = 16.dp),
+            onClick = onChooseFile
+        ) {
+            Text(
+                text = stringResource(id = R.string.import_choose_file),
+                style = UI.typo.b2.style(
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            )
+        }
+    }
 }
 
 @ExperimentalFoundationApi
