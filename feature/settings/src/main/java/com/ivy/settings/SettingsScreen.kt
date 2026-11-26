@@ -250,8 +250,16 @@ private fun BoxWithConstraintsScope.UI(
             Spacer(Modifier.height(16.dp))
 
             val nav = navigation()
-            ExportCSV {
-                onExportToCSV()
+            SettingsPrimaryButton(
+                icon = R.drawable.ic_export_csv,
+                text = stringResource(R.string.import_data),
+                backgroundGradient = GradientGreen
+            ) {
+                nav.navigateTo(
+                    ImportScreen(
+                        launchedFromOnboarding = false
+                    )
+                )
             }
 
             Spacer(Modifier.height(12.dp))
@@ -266,16 +274,8 @@ private fun BoxWithConstraintsScope.UI(
 
             Spacer(Modifier.height(12.dp))
 
-            SettingsPrimaryButton(
-                icon = R.drawable.ic_export_csv,
-                text = stringResource(R.string.import_data),
-                backgroundGradient = GradientGreen
-            ) {
-                nav.navigateTo(
-                    ImportScreen(
-                        launchedFromOnboarding = false
-                    )
-                )
+            ExportCSV {
+                onExportToCSV()
             }
         }
 
