@@ -283,20 +283,31 @@ private fun QuickAccess(
     Column {
         val nav = navigation()
 
-        Text(
-            modifier = Modifier.padding(start = 24.dp),
-            text = stringResource(R.string.quick_access),
-            style = UI.typo.b2.style()
-        )
-
-        Spacer(Modifier.height(12.dp))
-
-        MoreMenuButton(
-            icon = R.drawable.home_more_menu_settings,
-            label = stringResource(R.string.settings)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 24.dp, end = 20.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            nav.navigateTo(SettingsScreen)
+            Text(
+                text = stringResource(R.string.quick_access),
+                style = UI.typo.b2.style()
+            )
+
+            Spacer(Modifier.weight(1f))
+
+            CircleButtonFilled(
+                icon = R.drawable.ic_home_gear,
+                contentDescription = stringResource(R.string.settings),
+                backgroundColor = UI.colors.pure,
+                tint = UI.colors.pureInverse,
+                clickAreaPadding = 10.dp
+            ) {
+                nav.navigateTo(SettingsScreen)
+            }
         }
+
+        Spacer(Modifier.height(8.dp))
 
         MoreMenuButton(
             icon = R.drawable.home_more_menu_categories,
