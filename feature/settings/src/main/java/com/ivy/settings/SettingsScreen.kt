@@ -1111,7 +1111,7 @@ private fun CurrencyButton(
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .clip(UI.shapes.r4)
-            .border(2.dp, UI.colors.medium, UI.shapes.r4)
+            .background(UI.colors.medium, UI.shapes.r4)
             .clickable {
                 onClick()
             },
