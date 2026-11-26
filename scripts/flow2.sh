@@ -48,22 +48,21 @@ menu() { adb shell input tap 975 179; sleep 3; }
 T() { python3 $U tap-text "$1"; sleep ${2:-2}; }
 
 dump() { snap "$1"; python3 $U clickables | cut -c1-600 | tee -a "$OUT/screens.txt"; }
+
+dump() { snap "$1"; }
+addtx() { # type digits... ; picks category $CAT
+  adb shell input tap 540 1767; sleep 2
+  T "$1" 3; shift; for d in "$@"; do T $d 1; done; T Enter 3
+  T "$CAT" 3
+  adb shell input text "$TITLE"; sleep 1; adb shell input keyevent 4; sleep 1
+  python3 $U tap-text Add; sleep 3
+}
 gohome
-adb shell input tap 540 1767; sleep 2
-T "ADD EXPENSE" 3; T 5; T 0; T 0; T Enter 3
-T "Food & Drinks" 3; dump after-category
-python3 $U tap-text Save 2; sleep 3; dump after-save1
-# income
-adb shell input tap 540 1767; sleep 2
-T "ADD INCOME" 3; T 2; T 0; T 0; T 0; T Enter 3
-T "Skip" 3; dump income-after-skip
-T Save 3; dump income-saved
-gohome; snap home-with-data
-# transactions list tap
-adb shell input tap 540 1000; sleep 3; dump txn-detail
-# transfer
-gohome
-adb shell input tap 540 1767; sleep 2
-T "ACCOUNT TRANSFER" 3; dump transfer-screen
+CAT="Food & Drinks"; TITLE=Lunch; addtx "ADD EXPENSE" 5 0 0; dump expense-saved
+CAT="Skip"; TITLE=Salary; addtx "ADD INCOME" 2 0 0 0 || true; dump income-saved
+gohome; dump home-with-data
+adb shell input swipe 540 1500 540 700 300; sleep 1; dump home-scrolled
+python3 $U tap-text Lunch; sleep 3; dump txn-detail
+gohome; adb shell input tap 846 1840; sleep 3; dump accounts-with-data
 adb logcat -d | grep -E "FATAL EXCEPTION" -A10 | head -30 > "$OUT/crash.txt"
 true
