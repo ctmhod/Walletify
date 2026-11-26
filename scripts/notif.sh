@@ -28,6 +28,8 @@ python3 $U centers > /tmp/c0.txt; set -- $(sed -n 7p /tmp/c0.txt); adb shell inp
 python3 $U tap-text "Settings"; sleep 3
 adb shell input swipe 540 1700 540 700 400; sleep 1
 snap settings-default-off
+adb shell input swipe 540 700 540 1500 400; sleep 1; snap export-csv-row
+adb shell input swipe 540 1500 540 700 400; sleep 1
 python3 $U tap-text "Show notifications"; sleep 3
 snap after-toggle-permission-dialog
 python3 $U tap-text "Allow"; sleep 3
