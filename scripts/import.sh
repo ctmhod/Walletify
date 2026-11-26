@@ -57,6 +57,8 @@ python3 $U tap-text "Export data"; sleep 5
 snap export-data-sheet
 python3 $U tap-text "SAVE"; sleep 6
 snap zip-saved
+for k in 1 2 3; do case "$(python3 $U texts)" in *"Import & Export"*) break;; *) adb shell input keyevent 4; sleep 2;; esac; done
+snap zip-back-in-settings
 python3 $U tap-text "Import data"; sleep 4
 snap picker-with-zip
 python3 $U tap-text "Backup_" sub; sleep 8
