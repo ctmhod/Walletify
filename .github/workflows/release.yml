@@ -47,7 +47,7 @@ jobs:
         run: |
           TAG=${GITHUB_REF_NAME:-v$VER}
           cat > notes.md <<NOTES
-          Walletify v$VER, an offline money manager based on Ivy Wallet (GPL-3.0).
+          Walletify v$VER, an offline money manager for Android.
 
           Requires Android 10 (API 29) or newer.
 
