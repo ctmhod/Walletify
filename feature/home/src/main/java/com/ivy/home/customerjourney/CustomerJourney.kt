@@ -105,18 +105,21 @@ fun CustomerJourneyCard(
             )
 
             if (cardData.hasDismiss) {
+                val dismissTint = cardData.background.startColor.dynamicContrast()
                 IvyIcon(
                     modifier = Modifier
+                        .clip(androidx.compose.foundation.shape.CircleShape)
+                        .background(dismissTint.copy(alpha = 0.18f))
                         .clickable {
                             onDismiss()
                         }
-                        .padding(8.dp), // enlarge click area
+                        .padding(10.dp), // enlarge click area
                     icon = R.drawable.ic_dismiss,
-                    tint = cardData.background.startColor.dynamicContrast(),
+                    tint = dismissTint,
                     contentDescription = "prompt_dismiss",
                 )
 
-                Spacer(Modifier.width(20.dp))
+                Spacer(Modifier.width(14.dp))
             }
         }
 
