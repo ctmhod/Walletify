@@ -41,7 +41,7 @@ if __name__ == '__main__':
         want = sys.argv[2].lower()
         for n in nodes(root):
             t = (n.get('text') or n.get('content-desc') or '').lower()
-            if t == want or (len(sys.argv) > 3 and want in t):
+            if t == want or (len(sys.argv) > 3 and want in t and not t.startswith('preview')):
                 tap(*center(n.get('bounds'))); print('tapped', t); sys.exit(0)
         print('notfound', want); sys.exit(1)
     elif cmd == 'tap-checkables':
