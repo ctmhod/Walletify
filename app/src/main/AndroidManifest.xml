@@ -43,7 +43,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
-                <action android:name="ivy.wallet.intent.action.add_transaction" />
+                <action android:name="walletify.intent.action.add_transaction" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
 
@@ -96,7 +96,7 @@
         <service
             android:name=".PaymentTileService"
             android:exported="true"
-            android:icon="@drawable/ic_launcher_foreground"
+            android:icon="@mipmap/ic_launcher_monochrome"
             android:label="Add Payment"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
