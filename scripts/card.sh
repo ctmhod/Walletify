@@ -43,7 +43,7 @@ shot() {
 opendrawer() { python3 $U centers > /tmp/c0.txt; l=$(awk '$1>900 && $2<300 {print; exit}' /tmp/c0.txt); set -- $l; adb shell input tap $1 $2; sleep 3; }
 
 
-gohome() { adb shell am force-stop $PKG; adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1; sleep 7; python3 $U tap-text prompt_dismiss >/dev/null 2>&1; sleep 1; }
+gohome() { adb shell am force-stop $PKG; adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1; sleep 8; }
 menu() { adb shell input tap 975 179; sleep 3; }
 T() { python3 $U tap-text "$1"; sleep ${2:-2}; }
 
