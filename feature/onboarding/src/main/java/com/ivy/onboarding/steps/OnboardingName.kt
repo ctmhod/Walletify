@@ -76,7 +76,7 @@ fun BoxWithConstraintsScope.OnboardingName(
 
         Text(
             modifier = Modifier.padding(horizontal = 32.dp),
-            text = stringResource(R.string.enter_your_name),
+            text = stringResource(R.string.what_is_your_name),
             style = UI.typo.h2.style(
                 fontWeight = FontWeight.Black
             )
@@ -90,7 +90,7 @@ fun BoxWithConstraintsScope.OnboardingName(
                 .focusRequester(focus),
             dividerModifier = Modifier.padding(horizontal = 24.dp),
             value = name,
-            hint = stringResource(R.string.what_is_your_name),
+            hint = stringResource(R.string.your_name_hint),
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Words,
                 imeAction = ImeAction.Done

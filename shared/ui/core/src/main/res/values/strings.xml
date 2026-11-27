@@ -157,6 +157,7 @@
     <string name="privacy_policy">Privacy Policy</string>
     <string name="wallet_description">Track your income, expenses, and budget with Walletify!\n\nEnjoy an intuitive interface, manage recurring and planned payments, oversee multiple accounts, categorize transactions, access powerful statistics, export to CSV, and much more.</string>
     <string name="enter_your_name">Enter your name\nto personalize your\nwallet</string>
+    <string name="your_name_hint">Your name</string>
     <string name="what_is_your_name">What\'s your name?</string>
     <string name="enter">Enter</string>
     <string name="add_accounts">Add accounts</string>

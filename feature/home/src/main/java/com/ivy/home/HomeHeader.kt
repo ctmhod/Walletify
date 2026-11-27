@@ -104,7 +104,7 @@ internal fun HomeHeader(
             onSelectPreviousMonth = onSelectPreviousMonth,
         )
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(8.dp))
 
         if (percentExpanded < 0.5f) {
             TransactionsDividerLine(
@@ -132,6 +132,9 @@ private fun HeaderStickyRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            // Same height as the round menu button (48dp), so the greeting, the
+            // date pill and the button share one vertical center.
+            .height(48.dp)
             .padding(horizontal = 24.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.End,
