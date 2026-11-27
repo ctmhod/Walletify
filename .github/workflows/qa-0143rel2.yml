@@ -1,0 +1,127 @@
+name: QA v0.1.43 language removal
+on:
+  workflow_dispatch:
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download APKs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v0.1.43 -p '*x86_64.apk' -O new.apk
+          gh release download v0.1.42 -p '*x86_64.apk' -O old.apk
+          ls -l new.apk old.apk
+          cat > qa.sh <<'QA_EOF'
+          #!/usr/bin/env bash
+          set -u
+          APK=new.apk; OLD=old.apk; PKG=com.ctmhod.walletify; OUT=out; mkdir -p "$OUT"; U=scripts/ui.py
+          adb logcat -c
+          AAPT=$(ls $ANDROID_HOME/build-tools/*/aapt | tail -1)
+          $AAPT dump xmltree new.apk AndroidManifest.xml | grep -ic "localeConfig" > "$OUT/new-localeconfig-count.txt"
+          $AAPT dump xmltree old.apk AndroidManifest.xml | grep -ic "localeConfig" > "$OUT/old-localeconfig-count.txt"
+          $AAPT dump badging new.apk | grep -E "^package|sdkVersion" > "$OUT/new-badging.txt"
+          adb install -r old.apk
+          adb shell am start -a android.settings.APPLICATION_DETAILS_SETTINGS -d package:com.ctmhod.walletify >/dev/null 2>&1; sleep 4
+          adb exec-out screencap -p > "$OUT/00a-old-app-info.png"; echo "[00a] $(python3 $U texts | cut -c1-400)" | tee -a "$OUT/screens.txt"; adb shell input keyevent 3; sleep 1
+          adb shell monkey -p com.ctmhod.walletify -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1; sleep 10
+          adb shell input swipe 540 1800 540 600 300
+          python3 $U tap-text "Agree to all" ; sleep 4
+          adb shell am force-stop com.ctmhod.walletify
+          adb install -r "$APK"
+          adb shell am start -a android.settings.APPLICATION_DETAILS_SETTINGS -d package:com.ctmhod.walletify >/dev/null 2>&1; sleep 4
+          adb exec-out screencap -p > "$OUT/00b-new-app-info.png"; echo "[00b] $(python3 $U texts | cut -c1-300)" | tee -a "$OUT/screens.txt"; adb shell input keyevent 3; sleep 1
+          adb uninstall com.ctmhod.walletify >/dev/null; adb install -r "$APK" | tee "$OUT/install.txt"
+          adb shell wm size 1080x2400; adb shell wm density 420
+          python3 - <<'PY'
+          rows = [
+           "Date,Title,Category,Account,Amount,Currency,Type,Transfer Amount,Transfer Currency,To Account,Receive Amount,Receive Currency,Description,Due Date,ID",
+           '2026-11-20T10:00:00,Coffee,Food,Cash,"4.50",USD,EXPENSE,,,,,,test,,11111111-1111-4111-8111-111111111111',
+           '2026-11-21T12:30:00,Salary,Work,Cash,"1,250.00",USD,INCOME,,,,,,test,,22222222-2222-4222-8222-222222222222',
+           '2026-11-22T09:15:00,Lunch,Food,Cash,"12.00",USD,EXPENSE,,,,,,test,,33333333-3333-4333-8333-333333333333',
+          ]
+          open('/tmp/walletify-sample.csv','wb').write(b'\xff\xfe' + "\n".join(rows).encode('utf-16-le'))
+          open('/tmp/walletify-sample8.csv','w').write("\n".join(rows))
+          PY
+          adb push /tmp/walletify-sample.csv /sdcard/Download/walletify-sample.csv
+          adb push /tmp/walletify-sample8.csv /sdcard/Download/walletify-sample8.csv
+          echo "not a real import" > /tmp/notes.txt; adb push /tmp/notes.txt /sdcard/Download/notes.txt
+          for f in walletify-sample.csv walletify-sample8.csv notes.txt; do adb shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file:///sdcard/Download/$f >/dev/null 2>&1; done; sleep 5
+          adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
+          sleep 10
+          n=0
+          snap() { n=$((n+1)); adb exec-out screencap -p > "$OUT/$(printf %02d $n)-$1.png"; echo "[$n $1] $(python3 $U texts | cut -c1-600)" | tee -a "$OUT/screens.txt"; }
+          sleep 5
+          for j in 1 2; do adb shell input swipe 540 1800 540 600 300; sleep 1; done
+          python3 $U tap-bottom; sleep 5
+          for k in $(seq 1 12); do
+            T=$(python3 $U texts)
+            case "$T" in *"Adjust your initial balance"*|*"No transactions"*) break;; esac
+            case "$T" in
+              *"Offline account"*) python3 $U tap-text "Offline account"; sleep 4;;
+              *"Start fresh"*) python3 $U tap-text "Start fresh"; sleep 3;;
+              *"Set currency"*) python3 $U tap-text "Set"; sleep 3;;
+              *"Add accounts"*|*"Add categories"*) python3 $U tap-text "Skip"; sleep 3;;
+              *) sleep 3;;
+            esac
+          done
+          python3 $U tap-text prompt_dismiss; sleep 2
+          openmenu() { python3 $U centers > /tmp/c0.txt; set -- $(awk '$1>900 && $2<300 {print; exit}' /tmp/c0.txt); adb shell input tap $1 $2; sleep 3; }
+          openmenu; python3 $U tap-text "Settings"; sleep 3
+          snap settings-top
+          python3 $U tap-text "Language" >/dev/null 2>&1 && echo "LANGUAGE ROW STILL PRESENT" >> "$OUT/language-check.txt" || echo "no Language row (top)" >> "$OUT/language-check.txt"
+          for i in 1 2 3 4; do adb shell input swipe 540 1700 540 700 300; sleep 1; snap settings-scroll$i; done
+          for i in 1 2 3 4; do adb shell input swipe 540 700 540 1800 300; sleep 1; done
+          python3 $U tap-text "Import data"; sleep 4
+          snap picker-opened
+          adb shell input keyevent 4; sleep 3
+          snap picker-cancelled-back-in-settings
+          python3 $U tap-text "Import data"; sleep 4
+          snap picker-reopened
+          python3 $U tap-text "walletify-sample.csv"; sleep 6
+          snap csv-result
+          python3 $U tap-text "Finish"; sleep 3
+          snap after-finish
+          # non-importable file
+          python3 $U tap-text "Import data"; sleep 4
+          python3 $U tap-text "notes.txt"; sleep 5
+          snap bad-file-result
+          python3 $U tap-text "Finish"; sleep 3
+          snap after-bad-finish
+          # export data (zip) to see the share sheet
+          python3 $U tap-text "Export data"; sleep 5
+          snap export-data-sheet
+          python3 $U tap-text "SAVE"; sleep 6
+          snap zip-saved
+          for k in 1 2 3; do case "$(python3 $U texts)" in *"Import & Export"*) break;; *) adb shell input keyevent 4; sleep 2;; esac; done
+          snap zip-back-in-settings
+          python3 $U tap-text "Import data"; sleep 4
+          snap picker-with-zip
+          python3 $U tap-text "Backup_" sub; sleep 8
+          snap zip-result
+          python3 $U tap-text "Finish"; sleep 3
+          snap after-zip-finish
+          adb shell ls /sdcard/Download | tee "$OUT/downloads.txt"
+          adb logcat -d | grep -E "FATAL EXCEPTION" -A10 | head -30 > "$OUT/crash.txt"
+          true
+
+          QA_EOF
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: default
+          disable-animations: true
+          script: bash qa.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qa-0143
+          path: out
+          retention-days: 3
