@@ -1,0 +1,90 @@
+name: QA v0.1.44 name step
+on:
+  workflow_dispatch:
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download APKs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v0.1.44 -p '*x86_64.apk' -O new.apk
+          gh release download v0.1.43 -p '*x86_64.apk' -O old.apk
+          ls -l new.apk old.apk
+          cat > qa.sh <<'QA_EOF'
+          #!/usr/bin/env bash
+          set -u
+          APK=new.apk; OLD=old.apk; PKG=com.ctmhod.walletify; OUT=out; mkdir -p "$OUT"; U=scripts/ui.py
+          adb logcat -c
+          adb shell wm size 1080x2400; adb shell wm density 420
+          n=0
+          snap() { n=$((n+1)); adb exec-out screencap -p > "$OUT/$(printf %02d $n)-$1.png"; echo "[$n $1] $(python3 $U texts | cut -c1-500)" | tee -a "$OUT/screens.txt"; }
+          launch() { adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1; sleep 10; }
+          agree() { for j in 1 2; do adb shell input swipe 540 1800 540 600 300; sleep 1; done; python3 $U tap-bottom; sleep 5; }
+          settings() { python3 $U tap-text prompt_dismiss; sleep 2; python3 $U centers > /tmp/c0.txt; set -- $(awk '$1>900 && $2<300 {print; exit}' /tmp/c0.txt); adb shell input tap $1 $2; sleep 3; python3 $U tap-text "Settings"; sleep 3; }
+          finish_onboarding() { for k in $(seq 1 12); do
+            T=$(python3 $U texts)
+            case "$T" in *"Adjust your initial balance"*|*"No transactions"*) break;; esac
+            case "$T" in
+              *"Start fresh"*) python3 $U tap-text "Start fresh"; sleep 3;;
+              *"Set currency"*) python3 $U tap-text "Set"; sleep 3;;
+              *"Add accounts"*|*"Add categories"*) python3 $U tap-text "Skip"; sleep 3;;
+              *) sleep 3;;
+            esac
+          done; }
+
+          echo "=== A: fresh install v0.1.44, enter name" > "$OUT/log.txt"
+          adb install -r "$APK" | tee "$OUT/install.txt"
+          launch; snap A1-first-launch
+          agree; snap A2-after-agree
+          python3 $U tap-text "Offline account"; sleep 4; snap A3-name-step
+          adb shell input text Mahmoud; sleep 2; snap A4-name-typed
+          python3 $U tap-text "Next"; sleep 4; snap A5-after-name
+          finish_onboarding; snap A6-home
+          settings; snap A7-settings-with-name
+          adb shell am force-stop $PKG; launch; settings; snap A8-settings-after-restart
+
+          echo "=== B: fresh install, skip the name" >> "$OUT/log.txt"
+          adb uninstall $PKG >/dev/null; adb install -r "$APK" >/dev/null
+          launch; agree; python3 $U tap-text "Offline account"; sleep 4; snap B1-name-step
+          python3 $U tap-text "Skip"; sleep 4; snap B2-after-skip
+          finish_onboarding; settings; snap B3-settings-skipped
+
+          echo "=== C: back from path step goes to name step" >> "$OUT/log.txt"
+          adb uninstall $PKG >/dev/null; adb install -r "$APK" >/dev/null
+          launch; agree; python3 $U tap-text "Offline account"; sleep 4
+          adb shell input text Sara; sleep 1; python3 $U tap-text "Next"; sleep 4; snap C1-path-step
+          adb shell input keyevent 4; sleep 3; snap C2-back-to-name-step
+
+          echo "=== D: upgrade from v0.1.43 with data" >> "$OUT/log.txt"
+          adb uninstall $PKG >/dev/null; adb install -r "$OLD" >/dev/null
+          launch; agree; python3 $U tap-text "Offline account"; sleep 4; snap D1-old-first-screen
+          finish_onboarding; snap D2-old-home
+          adb shell am force-stop $PKG
+          adb install -r "$APK" | tee "$OUT/upgrade-install.txt"
+          launch; snap D3-after-upgrade
+          settings; snap D4-upgrade-settings
+          adb logcat -d | grep -E "FATAL EXCEPTION" -A10 | head -30 > "$OUT/crash.txt"
+          true
+
+          QA_EOF
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: default
+          disable-animations: true
+          script: bash qa.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qa-0144
+          path: out
+          retention-days: 3
