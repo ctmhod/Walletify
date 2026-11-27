@@ -1,0 +1,77 @@
+name: QA v0.1.46 date pill b
+on:
+  workflow_dispatch:
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download APKs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v0.1.46 -p '*x86_64.apk' -O new.apk
+          gh release download v0.1.44 -p '*x86_64.apk' -O old.apk
+          ls -l new.apk old.apk
+          cat > qa.sh <<'QA_EOF'
+          #!/usr/bin/env bash
+          set -u
+          APK=new.apk; OLD=old.apk; PKG=com.ctmhod.walletify; OUT=out; mkdir -p "$OUT"; U=scripts/ui.py
+          adb logcat -c
+          adb shell wm size 720x1560; adb shell wm density 320
+          n=0
+          snap() { n=$((n+1)); adb exec-out screencap -p > "$OUT/$(printf %02d $n)-$1.png"; echo "[$n $1] $(python3 $U texts | cut -c1-400)" | tee -a "$OUT/screens.txt"; }
+          launch() { adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1; sleep 10; }
+          agree() { for j in 1 2; do adb shell input swipe 360 1300 360 400 300; sleep 1; done; python3 $U tap-bottom; sleep 5; }
+          finish_onboarding() { for k in $(seq 1 12); do
+            T=$(python3 $U texts)
+            case "$T" in *"Adjust your initial balance"*|*"No transactions"*) break;; esac
+            case "$T" in
+              *"Start fresh"*) python3 $U tap-text "Start fresh"; sleep 3;;
+              *"Set currency"*) python3 $U tap-text "Set"; sleep 3;;
+              *"Add accounts"*|*"Add categories"*) python3 $U tap-text "Skip"; sleep 3;;
+              *) sleep 3;;
+            esac
+          done; }
+          run_one() { # $1 apk $2 label $3 pill text
+            adb uninstall $PKG >/dev/null 2>&1; adb install -r "$1" >/dev/null
+            launch; agree; python3 $U tap-text "Offline account"; sleep 4
+            adb shell input text Mahmoud; sleep 1; python3 $U tap-text "Next"; sleep 3
+            finish_onboarding; python3 $U tap-text prompt_dismiss; sleep 2
+            snap "$2-month-mode"
+            python3 $U tap-text "$3"; sleep 3; snap "$2-picker"
+            python3 $U tap-text "Select all time"; sleep 3; snap "$2-picker-after-all-time"
+            python3 $U tap-text "Set"; sleep 3; snap "$2-home-all-time"
+          }
+          run_one "$OLD" before November
+          run_one "$APK" after Nov
+          adb shell input swipe 360 700 360 400 300; sleep 1
+          echo "=== upgrade test: v0.1.44 data then v0.1.46" > "$OUT/log.txt"
+          adb uninstall $PKG >/dev/null 2>&1; adb install -r "$OLD" >/dev/null
+          launch; agree; python3 $U tap-text "Offline account"; sleep 4
+          adb shell input text Mahmoud; sleep 1; python3 $U tap-text "Next"; sleep 3
+          finish_onboarding; adb shell am force-stop $PKG
+          adb install -r "$APK" | tee "$OUT/upgrade-install.txt"
+          launch; python3 $U tap-text prompt_dismiss; sleep 2; snap upgrade-home
+          adb logcat -d | grep -E "FATAL EXCEPTION" -A10 | head -30 > "$OUT/crash.txt"
+          true
+
+          QA_EOF
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: default
+          disable-animations: true
+          script: bash qa.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qa-0146
+          path: out
+          retention-days: 3
