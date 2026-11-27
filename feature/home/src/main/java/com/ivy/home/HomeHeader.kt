@@ -132,9 +132,9 @@ private fun HeaderStickyRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            // Same height as the round menu button (48dp), so the greeting, the
-            // date pill and the button share one vertical center.
-            .height(48.dp)
+            // Same height as the round menu button and the date pill (40dp), so
+            // the three share one vertical center.
+            .height(40.dp)
             .padding(horizontal = 24.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.End,
@@ -202,6 +202,7 @@ private fun HeaderStickyRow(
                 timeProvider = LocalTimeProvider.current,
                 timeFormatter = LocalTimeFormatter.current,
             ),
+            minHeight = 40.dp,
             padding = 6.dp,
             startSpacing = 10.dp,
             endSpacing = 14.dp,
