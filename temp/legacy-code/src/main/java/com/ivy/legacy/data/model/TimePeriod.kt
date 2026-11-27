@@ -145,7 +145,7 @@ data class TimePeriod(
         when {
             month != null -> {
                 if (startDateOfMonth == 1) {
-                    displayMonthStartingOn1st(month = month, timeProvider)
+                    displayMonthStartingOn1st(month = month, timeProvider, abbreviate = true)
                 } else {
                     val range = toRange(
                         startDateOfMonth = startDateOfMonth,
@@ -213,6 +213,7 @@ data class TimePeriod(
     private fun displayMonthStartingOn1st(
         month: Month,
         timeProvider: TimeProvider,
+        abbreviate: Boolean = false,
     ): String {
         val year = year
         return if (year != null && timeProvider.localNow().year != year) {
@@ -220,7 +221,7 @@ data class TimePeriod(
             "${month.name.substring(0, MonthNameAbbreviationLength)}, $year"
         } else {
             // this year
-            month.name
+            if (abbreviate) month.name.substring(0, MonthNameAbbreviationLength) else month.name
         }
     }
 }
