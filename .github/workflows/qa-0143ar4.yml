@@ -1,0 +1,117 @@
+name: QA Arabic only
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download built APKs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run download 45958658640 -n apks -D apks
+      - name: Prepare
+        run: |
+          cp apks/*x86_64*.apk new.apk
+          ls -l apks
+          cat > qa.sh <<'QA_EOF'
+          #!/usr/bin/env bash
+          set -u
+          APK=new.apk; PKG=com.ctmhod.walletify; OUT=out; mkdir -p "$OUT"; U=scripts/ui.py
+          adb logcat -c
+          adb install -r "$APK" | tee "$OUT/install.txt"
+          adb shell wm size 1080x2400; adb shell wm density 420
+          n=0
+          snap() { n=$((n+1)); adb exec-out screencap -p > "$OUT/$(printf %02d $n)-$1.png"; echo "[$n $1] $(python3 $U texts | cut -c1-500)" | tee -a "$OUT/screens.txt"; }
+          launch() { adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1; sleep 9; }
+          tapany() { for t in "$@"; do python3 $U tap-text "$t" >/dev/null 2>&1 && return 0; done; return 1; }
+          # get through agreement + onboarding in either language
+          onboard() {
+            for k in $(seq 1 14); do
+              T=$(python3 $U texts)
+              case "$T" in *"Adjust your initial balance"*|*"اضبط رصيدك الابتدائي"*|*"No transactions"*|*"لا توجد معاملات"*) break;; esac
+              tapany "Agree to all" "أوافق على الكل" "Offline account" "حساب بدون إنترنت" "Start fresh" "ابدأ من جديد" "Set" "تعيين" "Skip" "تخطّي" || sleep 3
+              sleep 3
+            done
+            python3 $U tap-text prompt_dismiss >/dev/null 2>&1; sleep 2
+          }
+          openmenu() {
+            tapany "أهلًا" "أهلاً" && { sleep 3; return; }
+            adb shell input tap 980 180; sleep 3
+          }
+          back() { adb shell input keyevent 4; sleep 2; }
+          screen() { # name arabic english
+            openmenu; tapany "$2" "$3"; sleep 3; snap "$1"; back; }
+
+          adb shell cmd uimode night no
+          adb shell pm clear $PKG >/dev/null
+          adb shell cmd locale set-app-locales $PKG --user 0 --locales ar >> "$OUT/locale.txt" 2>&1
+          adb shell cmd locale get-app-locales $PKG --user 0 >> "$OUT/locale.txt" 2>&1
+          adb shell cmd locale set-app-locales $PKG --locales ar >> "$OUT/locale.txt" 2>&1
+          adb shell cmd locale get-app-locales $PKG >> "$OUT/locale.txt" 2>&1
+          launch
+          case "$(python3 $U texts)" in *"Please read"*)
+            echo "app locale not applied, switching system locale" >> "$OUT/locale.txt"
+            adb root >> "$OUT/locale.txt" 2>&1; sleep 3
+            adb shell setprop persist.sys.locale ar-EG-u-nu-latn; adb shell setprop ctl.restart zygote; sleep 40
+            adb wait-for-device; adb shell wm size 1080x2400; adb shell wm density 420
+            adb shell pm clear $PKG >/dev/null; launch;;
+          esac
+          snap ar-agreement
+          adb shell input swipe 540 1500 540 500 300; sleep 1; snap ar-agreement-scrolled
+          adb shell cmd uimode night yes; sleep 2; snap ar-agreement-dark
+          adb shell cmd uimode night no; sleep 2
+          tapany "أوافق على الكل"; sleep 5; snap ar-after-agree
+          for k in $(seq 1 14); do
+            T=$(python3 $U texts)
+            case "$T" in *"اضبط رصيدك الابتدائي"*|*"لا توجد معاملات"*) break;; esac
+            snap ar-onboarding-step
+            tapany "حساب بدون إنترنت" "ابدأ من جديد" "تعيين" "تخطّي" || sleep 3
+            sleep 3
+          done
+          tapany prompt_dismiss; sleep 2
+          snap ar-home
+          adb shell cmd uimode night yes; sleep 2; snap ar-home-dark; adb shell cmd uimode night no; sleep 2
+          # bottom tabs
+          for x in 233 540 847; do adb shell input tap $x 1841; sleep 3; snap ar-tab-$x; done
+          adb shell input tap 540 1841; sleep 2
+          openmenu; snap ar-menu
+          for pair in "ar-categories|الفئات|Categories" "ar-planned|المدفوعات المجدولة|Planned Payments" "ar-savings|هدف الادخار|Savings goal" "ar-reports|التقارير|Reports" "ar-budgets|الميزانيات|Budgets" "ar-loans|القروض|Loans"; do
+            IFS='|' read nm a e <<< "$pair"
+            openmenu; tapany "$a" "$e"; sleep 3; snap $nm; back
+          done
+          openmenu; tapany "الإعدادات"; sleep 3; snap ar-settings
+          for i in 1 2; do adb shell input swipe 540 1700 540 900 300; sleep 1; done; snap ar-settings-mid
+          tapany "أسعار الصرف"; sleep 4; snap ar-exchange-rates; back
+          tapany "تحديد العملة" "USD"; sleep 3; snap ar-currency
+          back
+          for i in 1 2 3; do adb shell input swipe 540 1700 540 600 300; sleep 1; done; snap ar-settings-bottom
+          for i in 1 2 3 4; do adb shell input swipe 540 700 540 1800 300; sleep 1; done
+          tapany "استيراد البيانات"; sleep 4; snap ar-import-picker; back
+          tapany "تصدير البيانات"; sleep 5; snap ar-export; back; back
+          tapany "اللغة"; sleep 2; snap ar-language-dialog
+          tapany "English"; sleep 5; snap en-after-switch-back
+          adb logcat -d | grep -E "FATAL EXCEPTION" -A12 | head -40 > "$OUT/crash.txt"
+          true
+          QA_EOF
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: default
+          disable-animations: true
+          script: bash qa.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qa-ar3
+          path: out
+          retention-days: 3
