@@ -64,8 +64,13 @@ class OnboardingRouter(
                     false
                 }
 
-                OnboardingState.CHOOSE_PATH -> {
+                OnboardingState.NAME -> {
                     state.value = OnboardingState.LOGIN
+                    true
+                }
+
+                OnboardingState.CHOOSE_PATH -> {
+                    state.value = OnboardingState.NAME
                     true
                 }
 
@@ -130,6 +135,10 @@ class OnboardingRouter(
     }
 
     suspend fun offlineAccountNext() {
+        state.value = OnboardingState.NAME
+    }
+
+    fun nameNext() {
         state.value = OnboardingState.CHOOSE_PATH
     }
     // ------------------------------------- Step 1 -------------------------------------------------

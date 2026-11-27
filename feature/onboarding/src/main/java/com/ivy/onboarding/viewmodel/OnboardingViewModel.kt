@@ -151,9 +151,21 @@ class OnboardingViewModel @Inject constructor(
                 OnboardingEvent.OnAddCategoriesDone -> onAddCategoriesDone()
                 OnboardingEvent.OnAddCategoriesSkip -> onAddCategoriesSkip()
                 is OnboardingEvent.SetBaseCurrency -> setBaseCurrency(event.baseCurrency)
+                is OnboardingEvent.SetName -> setName(event.name)
+                OnboardingEvent.SkipName -> router.nameNext()
                 OnboardingEvent.StartFresh -> startFresh()
                 OnboardingEvent.StartImport -> startImport()
             }
+        }
+    }
+
+    private fun setName(name: String) {
+        viewModelScope.launch {
+            ioThread {
+                val current = settingsDao.findFirst()
+                settingsWriter.save(current.copy(name = name))
+            }
+            router.nameNext()
         }
     }
 

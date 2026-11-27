@@ -12,6 +12,7 @@ import com.ivy.legacy.utils.onScreenStart
 import com.ivy.navigation.OnboardingScreen
 import com.ivy.onboarding.steps.OnboardingAccounts
 import com.ivy.onboarding.steps.OnboardingCategories
+import com.ivy.onboarding.steps.OnboardingName
 import com.ivy.onboarding.steps.OnboardingSetCurrency
 import com.ivy.onboarding.steps.OnboardingSplashLogin
 import com.ivy.onboarding.steps.OnboardingType
@@ -71,6 +72,13 @@ private fun BoxWithConstraintsScope.UI(
             OnboardingSplashLogin(
                 onboardingState = onboardingState,
                 onSkip = { onEvent(OnboardingEvent.LoginOfflineAccount) }
+            )
+        }
+
+        OnboardingState.NAME -> {
+            OnboardingName(
+                onContinue = { onEvent(OnboardingEvent.SetName(it)) },
+                onSkip = { onEvent(OnboardingEvent.SkipName) }
             )
         }
 

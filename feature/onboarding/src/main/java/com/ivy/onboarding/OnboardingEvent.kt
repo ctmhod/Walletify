@@ -9,6 +9,8 @@ import com.ivy.wallet.domain.deprecated.logic.model.CreateCategoryData
 sealed interface OnboardingEvent {
 
     data object LoginOfflineAccount : OnboardingEvent
+    data class SetName(val name: String) : OnboardingEvent
+    data object SkipName : OnboardingEvent
     data object StartImport : OnboardingEvent
     data object ImportSkip : OnboardingEvent
     data class ImportFinished(val success: Boolean) : OnboardingEvent
