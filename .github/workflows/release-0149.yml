@@ -1,0 +1,96 @@
+name: Release v0.1.49
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Same-size Home header row, bump version
+        run: |
+          cat > name.b64 <<'B64_EOF'
+          ZGlmZiAtLWdpdCBhL2ZlYXR1cmUvaG9tZS9zcmMvbWFpbi9qYXZhL2NvbS9pdnkvaG9tZS9Ib21l
+          SGVhZGVyLmt0IGIvZmVhdHVyZS9ob21lL3NyYy9tYWluL2phdmEvY29tL2l2eS9ob21lL0hvbWVI
+          ZWFkZXIua3QKaW5kZXggNDU0NzVhNi4uNzQ1MDhiOSAxMDA2NDQKLS0tIGEvZmVhdHVyZS9ob21l
+          L3NyYy9tYWluL2phdmEvY29tL2l2eS9ob21lL0hvbWVIZWFkZXIua3QKKysrIGIvZmVhdHVyZS9o
+          b21lL3NyYy9tYWluL2phdmEvY29tL2l2eS9ob21lL0hvbWVIZWFkZXIua3QKQEAgLTI5LDYgKzI5
+          LDcgQEAgaW1wb3J0IGFuZHJvaWR4LmNvbXBvc2UudWkucmVzLnN0cmluZ1Jlc291cmNlCiBpbXBv
+          cnQgYW5kcm9pZHguY29tcG9zZS51aS50ZXh0LmZvbnQuRm9udFdlaWdodAogaW1wb3J0IGFuZHJv
+          aWR4LmNvbXBvc2UudWkudGV4dC5zdHlsZS5UZXh0T3ZlcmZsb3cKIGltcG9ydCBhbmRyb2lkeC5j
+          b21wb3NlLnVpLnVuaXQuZHAKK2ltcG9ydCBhbmRyb2lkeC5jb21wb3NlLnVpLnVuaXQuc3AKIGlt
+          cG9ydCBjb20uaXZ5LmJhc2UubW9kZWwuVHJhbnNhY3Rpb25UeXBlCiBpbXBvcnQgY29tLml2eS5k
+          ZXNpZ24uYXBpLkxvY2FsVGltZUNvbnZlcnRlcgogaW1wb3J0IGNvbS5pdnkuZGVzaWduLmFwaS5M
+          b2NhbFRpbWVGb3JtYXR0ZXIKQEAgLTE1OCw3ICsxNTksNyBAQCBwcml2YXRlIGZ1biBIZWFkZXJT
+          dGlja3lSb3coCiAgICAgICAgICAgICAgICAgc3R5bGUgPSBVSS50eXBvLmIxLnN0eWxlKAogICAg
+          ICAgICAgICAgICAgICAgICBmb250V2VpZ2h0ID0gRm9udFdlaWdodC5FeHRyYUJvbGQsCiAgICAg
+          ICAgICAgICAgICAgICAgIGNvbG9yID0gVUkuY29sb3JzLnB1cmVJbnZlcnNlLAotICAgICAgICAg
+          ICAgICAgICksCisgICAgICAgICAgICAgICAgKS5jb3B5KGZvbnRTaXplID0gMjIuc3ApLAogICAg
+          ICAgICAgICAgICAgIG92ZXJmbG93ID0gVGV4dE92ZXJmbG93LkVsbGlwc2lzLAogICAgICAgICAg
+          ICAgICAgIG1heExpbmVzID0gMSwKICAgICAgICAgICAgICkK
+          B64_EOF
+          base64 -d name.b64 > name.diff
+          rm name.b64
+          git apply --index name.diff
+          rm name.diff
+          sed -i 's/^version-name = ".*"/version-name = "0.1.49"/; s/^version-code = ".*"/version-code = "50"/' gradle/libs.versions.toml
+          grep -n '^version-' gradle/libs.versions.toml
+          git diff --cached --stat
+      - name: Decode keystore
+        run: echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > sign.jks
+      - name: Build
+        env:
+          SIGNING_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: walletify
+        run: ./gradlew :app:assembleRelease --no-daemon -Dorg.gradle.jvmargs=-Xmx4g
+      - name: Package and verify
+        run: |
+          VER=0.1.49
+          mkdir out
+          for f in app/build/outputs/apk/release/*.apk; do
+            n=$(basename "$f" .apk)
+            abi=${n#app-}; abi=${abi%-release}
+            if [ "$abi" = "universal" ]; then dest="Walletify-v$VER-0-universal.apk"; else dest="Walletify-v$VER-$abi.apk"; fi
+            cp "$f" "out/$dest"
+          done
+          AAPT=$(ls $ANDROID_HOME/build-tools/*/aapt | tail -1)
+          APKSIGNER=$(ls $ANDROID_HOME/build-tools/*/apksigner | tail -1)
+          for f in out/*.apk; do
+            echo "== $f ($(stat -c%s "$f") bytes)"
+            $APKSIGNER verify --print-certs "$f" | grep -E "SHA-256|Verifies"
+            $AAPT dump badging "$f" | grep -E "^package|sdkVersion|native-code"
+          done
+      - name: Commit and push source change
+        run: |
+          rm -f sign.jks
+          git add -A feature gradle app temp
+          git -c user.name="ctmhod" -c user.email="290202009+ctmhod@users.noreply.github.com" commit -q -m "Slightly larger greeting on Home (v0.1.49)"
+          git pull --rebase origin main || true
+          git push origin HEAD:main
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VER=0.1.49
+          cat > notes.md <<NOTES
+          Walletify v$VER, an offline money manager for Android.
+
+          Change: the Home header row is more consistent: the greeting, the date pill and the round menu button now share the same height and center line.
+
+          Requires Android 10 (API 29) or newer.
+
+          Start with **Walletify-v$VER-0-universal.apk** (works on every device).
+          Smaller per-architecture files: arm64-v8a (most phones and tablets), armeabi-v7a (older 32-bit devices), x86_64 (emulators).
+          If the install fails with "App not installed", uninstall any older Walletify build first (signing key may differ).
+          NOTES
+          sed -i 's/^ *//' notes.md
+          gh release create "v$VER" out/*.apk --target main --title "Walletify v$VER" --notes-file notes.md
