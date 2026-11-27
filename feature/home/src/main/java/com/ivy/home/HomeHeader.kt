@@ -199,7 +199,9 @@ private fun HeaderStickyRow(
                 timeProvider = LocalTimeProvider.current,
                 timeFormatter = LocalTimeFormatter.current,
             ),
-            minWidth = 130.dp,
+            padding = 6.dp,
+            startSpacing = 10.dp,
+            endSpacing = 14.dp,
         ) {
             onShowMonthModal()
         }

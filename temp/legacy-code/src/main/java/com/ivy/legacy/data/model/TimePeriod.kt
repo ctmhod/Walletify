@@ -129,6 +129,13 @@ data class TimePeriod(
         from to to
     }
 
+    /** "Select all time" saves a range with no start date and an end date in the future. */
+    private fun isAllTime(timeProvider: TimeProvider): Boolean {
+        val range = fromToRange ?: return false
+        val end = range.to ?: return false
+        return range.from == null && end.isAfter(timeProvider.utcNow())
+    }
+
     fun toDisplayShort(
         startDateOfMonth: Int,
         timeConverter: TimeConverter,
@@ -149,6 +156,8 @@ data class TimePeriod(
                     "${range.from?.formatLocal(style)} - ${range.to?.formatLocal(style)}"
                 }
             }
+
+            isAllTime(timeProvider) -> "All time"
 
             fromToRange != null -> {
                 fromToRange.toDisplay(timeFormatter)
@@ -180,6 +189,8 @@ data class TimePeriod(
                     ).toDisplay(timeFormatter)
                 }
             }
+
+            isAllTime(timeProvider) -> "all time"
 
             fromToRange != null -> {
                 fromToRange.toDisplay(timeFormatter)

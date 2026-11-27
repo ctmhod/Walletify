@@ -41,6 +41,8 @@ fun IvyOutlinedButton(
     borderColor: Color = UI.colors.medium,
     textColor: Color = UI.colors.pureInverse,
     padding: Dp = 12.dp,
+    startSpacing: Dp = 12.dp,
+    endSpacing: Dp = 24.dp,
     onClick: () -> Unit,
 ) {
     val pure = UI.colors.pure
@@ -60,7 +62,7 @@ fun IvyOutlinedButton(
         horizontalArrangement = Arrangement.Center,
     ) {
         if (iconStart != null) {
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(startSpacing))
 
             IvyIcon(
                 icon = iconStart,
@@ -80,7 +82,7 @@ fun IvyOutlinedButton(
             ),
         )
 
-        Spacer(Modifier.width(24.dp))
+        Spacer(Modifier.width(endSpacing))
     }
 }
 
