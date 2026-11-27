@@ -1,0 +1,93 @@
+name: QA notifications
+on:
+  workflow_dispatch:
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download APKs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v0.1.50 -p '*x86_64.apk' -O new.apk
+          cp new.apk old.apk
+          ls -l new.apk old.apk
+          cat > qa.sh <<'QA_EOF'
+          #!/usr/bin/env bash
+          set -u
+          APK=new.apk; OLD=old.apk; PKG=com.ctmhod.walletify; OUT=out; mkdir -p "$OUT"; U=scripts/ui.py
+          adb logcat -c
+          adb shell wm size 720x1560; adb shell wm density 320
+          n=0
+          snap() { n=$((n+1)); adb exec-out screencap -p > "$OUT/$(printf %02d $n)-$1.png"; echo "[$n $1] $(python3 $U texts | cut -c1-400)" | tee -a "$OUT/screens.txt"; }
+          launch() { adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1; sleep 10; }
+          agree() { for j in 1 2; do adb shell input swipe 360 1300 360 400 300; sleep 1; done; python3 $U tap-bottom; sleep 5; }
+          finish_onboarding() { for k in $(seq 1 12); do
+            T=$(python3 $U texts)
+            case "$T" in *"Adjust your initial balance"*|*"No transactions"*) break;; esac
+            case "$T" in
+              *"Start fresh"*) python3 $U tap-text "Start fresh"; sleep 3;;
+              *"Set currency"*) python3 $U tap-text "Set"; sleep 3;;
+              *"Add accounts"*|*"Add categories"*) python3 $U tap-text "Skip"; sleep 3;;
+              *) sleep 3;;
+            esac
+          done; }
+          inst() { adb shell am force-stop $PKG; sleep 2; adb uninstall $PKG >/dev/null 2>&1; sleep 3; adb install -r "$1" >/dev/null; }
+          go_settings() { python3 $U tap 632 128; sleep 2; snap "$1-menu"; python3 $U tap-text "Settings"; sleep 3; adb shell input tap 360 700 >/dev/null 2>&1; }
+          find_toggle() { for k in 1 2 3 4 5 6 7 8; do T=$(python3 $U texts); case "$T" in *"Show notifications"*) return 0;; esac; adb shell input swipe 360 1200 360 500 300; sleep 1; done; return 1; }
+          setup() { inst "$APK"; launch; python3 $U tap-text "Offline account"; sleep 4
+            adb shell input text Mahmoud; sleep 1; python3 $U tap-text "Next"; sleep 3
+            finish_onboarding; python3 $U tap-text prompt_dismiss; sleep 2; }
+          jobs() { adb shell dumpsys jobscheduler | grep -E "JOB #.*walletify|walletify.*SystemJobService" | head -5; }
+          # A. allow path
+          setup; adb shell dumpsys package $PKG | grep -E "POST_NOTIFICATIONS" | head -3 | tee "$OUT/A-perm-before.txt"
+          echo "jobs before toggle:" > "$OUT/A-jobs.txt"; jobs >> "$OUT/A-jobs.txt"
+          python3 $U tap 632 128; sleep 2; snap "A-menu"
+          python3 $U tap-text "Settings" || true; sleep 3; adb shell input tap 100 100 >/dev/null 2>&1
+          snap "A-settings-top"
+          find_toggle; snap "A-settings-toggle-visible"
+          python3 $U tap-text "Show notifications" 1; sleep 3; snap "A-permission-dialog"
+          python3 $U tap-text "Allow"; sleep 3; snap "A-after-allow"
+          adb shell dumpsys package $PKG | grep -E "POST_NOTIFICATIONS.*granted" | head -2 | tee "$OUT/A-perm-after.txt"
+          echo "jobs after toggle:" >> "$OUT/A-jobs.txt"; jobs >> "$OUT/A-jobs.txt"
+          adb shell am force-stop $PKG; launch; echo "jobs after relaunch:" >> "$OUT/A-jobs.txt"; jobs >> "$OUT/A-jobs.txt"
+          adb shell dumpsys jobscheduler | grep -B2 -A12 "$PKG" | head -60 > "$OUT/A-jobs-full.txt"
+          JID=$(adb shell dumpsys jobscheduler | grep -E "JOB #u0a[0-9]+/[0-9]+: .* com.ctmhod.walletify" | head -1 | sed -E 's#.*JOB #u0a[0-9]+/([0-9]+).*#\1#'); echo "JID=$JID" >> "$OUT/A-jobs.txt"
+          adb shell cmd jobscheduler run -f $PKG ${JID:-0} | tee "$OUT/A-run-job.txt"; sleep 8
+          adb shell dumpsys notification --noredact | grep -E "pkg=$PKG" -A12 | head -40 > "$OUT/A-notification-dump.txt"
+          adb shell cmd statusbar expand-notifications; sleep 3; snap "A-notification-shade"
+          adb shell cmd statusbar collapse; sleep 1
+          # tap notification opens the app?
+          adb shell cmd statusbar expand-notifications; sleep 2; python3 $U tap-text "Walletify"; sleep 4; snap "A-after-tap-notification"
+          # B. deny path
+          setup; python3 $U tap 632 128; sleep 2; python3 $U tap-text "Settings" || true; sleep 3; find_toggle
+          python3 $U tap-text "Show notifications" 1; sleep 3; snap "B-permission-dialog"
+          python3 $U tap-text "Don" 1; sleep 3; snap "B-after-deny"
+          adb shell dumpsys package $PKG | grep -E "POST_NOTIFICATIONS" | head -2 | tee "$OUT/B-perm.txt"
+          # C. toggle off after on
+          setup; adb shell pm grant $PKG android.permission.POST_NOTIFICATIONS; python3 $U tap 632 128; sleep 2; python3 $U tap-text "Settings" || true; sleep 3; find_toggle
+          python3 $U tap-text "Show notifications" 1; sleep 3; snap "C-on"
+          python3 $U tap-text "Show notifications" 1; sleep 3; snap "C-off"
+          adb logcat -d | grep -E "FATAL EXCEPTION" -A10 | head -30 > "$OUT/crash.txt"
+          true
+
+          QA_EOF
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: default
+          disable-animations: true
+          script: bash qa.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qa-notif
+          path: out
+          retention-days: 3
