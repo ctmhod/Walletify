@@ -29,6 +29,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.ivy.base.model.TransactionType
 import com.ivy.design.api.LocalTimeConverter
 import com.ivy.design.api.LocalTimeFormatter
@@ -158,7 +159,7 @@ private fun HeaderStickyRow(
                 style = UI.typo.b1.style(
                     fontWeight = FontWeight.ExtraBold,
                     color = UI.colors.pureInverse,
-                ),
+                ).copy(fontSize = 22.sp),
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1,
             )
