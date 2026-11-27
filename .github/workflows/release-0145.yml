@@ -1,0 +1,120 @@
+name: Release v0.1.45
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Smaller date pill, All time label, bump version
+        run: |
+          cat > name.b64 <<'B64_EOF'
+          ZGlmZiAtLWdpdCBhL2ZlYXR1cmUvaG9tZS9zcmMvbWFpbi9qYXZhL2NvbS9pdnkvaG9tZS9Ib21lSGVhZGVyLmt0IGIvZmVhdHVy
+          ZS9ob21lL3NyYy9tYWluL2phdmEvY29tL2l2eS9ob21lL0hvbWVIZWFkZXIua3QKaW5kZXggOTZlM2UxMC4uNGRjMTQ4YSAxMDA2
+          NDQKLS0tIGEvZmVhdHVyZS9ob21lL3NyYy9tYWluL2phdmEvY29tL2l2eS9ob21lL0hvbWVIZWFkZXIua3QKKysrIGIvZmVhdHVy
+          ZS9ob21lL3NyYy9tYWluL2phdmEvY29tL2l2eS9ob21lL0hvbWVIZWFkZXIua3QKQEAgLTE5OSw3ICsxOTksOSBAQCBwcml2YXRl
+          IGZ1biBIZWFkZXJTdGlja3lSb3coCiAgICAgICAgICAgICAgICAgdGltZVByb3ZpZGVyID0gTG9jYWxUaW1lUHJvdmlkZXIuY3Vy
+          cmVudCwKICAgICAgICAgICAgICAgICB0aW1lRm9ybWF0dGVyID0gTG9jYWxUaW1lRm9ybWF0dGVyLmN1cnJlbnQsCiAgICAgICAg
+          ICAgICApLAotICAgICAgICAgICAgbWluV2lkdGggPSAxMzAuZHAsCisgICAgICAgICAgICBwYWRkaW5nID0gNi5kcCwKKyAgICAg
+          ICAgICAgIHN0YXJ0U3BhY2luZyA9IDEwLmRwLAorICAgICAgICAgICAgZW5kU3BhY2luZyA9IDE0LmRwLAogICAgICAgICApIHsK
+          ICAgICAgICAgICAgIG9uU2hvd01vbnRoTW9kYWwoKQogICAgICAgICB9CmRpZmYgLS1naXQgYS90ZW1wL2xlZ2FjeS1jb2RlL3Ny
+          Yy9tYWluL2phdmEvY29tL2l2eS9sZWdhY3kvZGF0YS9tb2RlbC9UaW1lUGVyaW9kLmt0IGIvdGVtcC9sZWdhY3ktY29kZS9zcmMv
+          bWFpbi9qYXZhL2NvbS9pdnkvbGVnYWN5L2RhdGEvbW9kZWwvVGltZVBlcmlvZC5rdAppbmRleCBjYmVmYzczLi5lMzI4YTVmIDEw
+          MDY0NAotLS0gYS90ZW1wL2xlZ2FjeS1jb2RlL3NyYy9tYWluL2phdmEvY29tL2l2eS9sZWdhY3kvZGF0YS9tb2RlbC9UaW1lUGVy
+          aW9kLmt0CisrKyBiL3RlbXAvbGVnYWN5LWNvZGUvc3JjL21haW4vamF2YS9jb20vaXZ5L2xlZ2FjeS9kYXRhL21vZGVsL1RpbWVQ
+          ZXJpb2Qua3QKQEAgLTEyOSw2ICsxMjksMTMgQEAgZGF0YSBjbGFzcyBUaW1lUGVyaW9kKAogICAgICAgICBmcm9tIHRvIHRvCiAg
+          ICAgfQogCisgICAgLyoqICJTZWxlY3QgYWxsIHRpbWUiIHNhdmVzIGEgcmFuZ2Ugd2l0aCBubyBzdGFydCBkYXRlIGFuZCBhbiBl
+          bmQgZGF0ZSBpbiB0aGUgZnV0dXJlLiAqLworICAgIHByaXZhdGUgZnVuIGlzQWxsVGltZSh0aW1lUHJvdmlkZXI6IFRpbWVQcm92
+          aWRlcik6IEJvb2xlYW4geworICAgICAgICB2YWwgcmFuZ2UgPSBmcm9tVG9SYW5nZSA/OiByZXR1cm4gZmFsc2UKKyAgICAgICAg
+          dmFsIGVuZCA9IHJhbmdlLnRvID86IHJldHVybiBmYWxzZQorICAgICAgICByZXR1cm4gcmFuZ2UuZnJvbSA9PSBudWxsICYmIGVu
+          ZC5pc0FmdGVyKHRpbWVQcm92aWRlci51dGNOb3coKSkKKyAgICB9CisKICAgICBmdW4gdG9EaXNwbGF5U2hvcnQoCiAgICAgICAg
+          IHN0YXJ0RGF0ZU9mTW9udGg6IEludCwKICAgICAgICAgdGltZUNvbnZlcnRlcjogVGltZUNvbnZlcnRlciwKQEAgLTE1MCw2ICsx
+          NTcsOCBAQCBkYXRhIGNsYXNzIFRpbWVQZXJpb2QoCiAgICAgICAgICAgICAgICAgfQogICAgICAgICAgICAgfQogCisgICAgICAg
+          ICAgICBpc0FsbFRpbWUodGltZVByb3ZpZGVyKSAtPiAiQWxsIHRpbWUiCisKICAgICAgICAgICAgIGZyb21Ub1JhbmdlICE9IG51
+          bGwgLT4gewogICAgICAgICAgICAgICAgIGZyb21Ub1JhbmdlLnRvRGlzcGxheSh0aW1lRm9ybWF0dGVyKQogICAgICAgICAgICAg
+          fQpAQCAtMTgxLDYgKzE5MCw4IEBAIGRhdGEgY2xhc3MgVGltZVBlcmlvZCgKICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAg
+          ICB9CiAKKyAgICAgICAgICAgIGlzQWxsVGltZSh0aW1lUHJvdmlkZXIpIC0+ICJhbGwgdGltZSIKKwogICAgICAgICAgICAgZnJv
+          bVRvUmFuZ2UgIT0gbnVsbCAtPiB7CiAgICAgICAgICAgICAgICAgZnJvbVRvUmFuZ2UudG9EaXNwbGF5KHRpbWVGb3JtYXR0ZXIp
+          CiAgICAgICAgICAgICB9CmRpZmYgLS1naXQgYS90ZW1wL2xlZ2FjeS1jb2RlL3NyYy9tYWluL2phdmEvY29tL2l2eS9sZWdhY3kv
+          bGVnYWN5L3VpL3RoZW1lL2NvbXBvbmVudHMvSXZ5T3V0bGluZWRCdXR0b24ua3QgYi90ZW1wL2xlZ2FjeS1jb2RlL3NyYy9tYWlu
+          L2phdmEvY29tL2l2eS9sZWdhY3kvbGVnYWN5L3VpL3RoZW1lL2NvbXBvbmVudHMvSXZ5T3V0bGluZWRCdXR0b24ua3QKaW5kZXgg
+          MjI0MmQ4YS4uN2E4YTMwNiAxMDA2NDQKLS0tIGEvdGVtcC9sZWdhY3ktY29kZS9zcmMvbWFpbi9qYXZhL2NvbS9pdnkvbGVnYWN5
+          L2xlZ2FjeS91aS90aGVtZS9jb21wb25lbnRzL0l2eU91dGxpbmVkQnV0dG9uLmt0CisrKyBiL3RlbXAvbGVnYWN5LWNvZGUvc3Jj
+          L21haW4vamF2YS9jb20vaXZ5L2xlZ2FjeS9sZWdhY3kvdWkvdGhlbWUvY29tcG9uZW50cy9JdnlPdXRsaW5lZEJ1dHRvbi5rdApA
+          QCAtNDEsNiArNDEsOCBAQCBmdW4gSXZ5T3V0bGluZWRCdXR0b24oCiAgICAgYm9yZGVyQ29sb3I6IENvbG9yID0gVUkuY29sb3Jz
+          Lm1lZGl1bSwKICAgICB0ZXh0Q29sb3I6IENvbG9yID0gVUkuY29sb3JzLnB1cmVJbnZlcnNlLAogICAgIHBhZGRpbmc6IERwID0g
+          MTIuZHAsCisgICAgc3RhcnRTcGFjaW5nOiBEcCA9IDEyLmRwLAorICAgIGVuZFNwYWNpbmc6IERwID0gMjQuZHAsCiAgICAgb25D
+          bGljazogKCkgLT4gVW5pdCwKICkgewogICAgIHZhbCBwdXJlID0gVUkuY29sb3JzLnB1cmUKQEAgLTYwLDcgKzYyLDcgQEAgZnVu
+          IEl2eU91dGxpbmVkQnV0dG9uKAogICAgICAgICBob3Jpem9udGFsQXJyYW5nZW1lbnQgPSBBcnJhbmdlbWVudC5DZW50ZXIsCiAg
+          ICAgKSB7CiAgICAgICAgIGlmIChpY29uU3RhcnQgIT0gbnVsbCkgewotICAgICAgICAgICAgU3BhY2VyKE1vZGlmaWVyLndpZHRo
+          KDEyLmRwKSkKKyAgICAgICAgICAgIFNwYWNlcihNb2RpZmllci53aWR0aChzdGFydFNwYWNpbmcpKQogCiAgICAgICAgICAgICBJ
+          dnlJY29uKAogICAgICAgICAgICAgICAgIGljb24gPSBpY29uU3RhcnQsCkBAIC04MCw3ICs4Miw3IEBAIGZ1biBJdnlPdXRsaW5l
+          ZEJ1dHRvbigKICAgICAgICAgICAgICksCiAgICAgICAgICkKIAotICAgICAgICBTcGFjZXIoTW9kaWZpZXIud2lkdGgoMjQuZHAp
+          KQorICAgICAgICBTcGFjZXIoTW9kaWZpZXIud2lkdGgoZW5kU3BhY2luZykpCiAgICAgfQogfQogCg==
+          B64_EOF
+          base64 -d name.b64 > name.diff
+          rm name.b64
+          git apply --index name.diff
+          rm name.diff
+          sed -i 's/^version-name = ".*"/version-name = "0.1.45"/; s/^version-code = ".*"/version-code = "46"/' gradle/libs.versions.toml
+          grep -n '^version-' gradle/libs.versions.toml
+          git diff --cached --stat
+      - name: Decode keystore
+        run: echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > sign.jks
+      - name: Build
+        env:
+          SIGNING_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: walletify
+        run: ./gradlew :app:assembleRelease --no-daemon -Dorg.gradle.jvmargs=-Xmx4g
+      - name: Package and verify
+        run: |
+          VER=0.1.45
+          mkdir out
+          for f in app/build/outputs/apk/release/*.apk; do
+            n=$(basename "$f" .apk)
+            abi=${n#app-}; abi=${abi%-release}
+            if [ "$abi" = "universal" ]; then dest="Walletify-v$VER-0-universal.apk"; else dest="Walletify-v$VER-$abi.apk"; fi
+            cp "$f" "out/$dest"
+          done
+          AAPT=$(ls $ANDROID_HOME/build-tools/*/aapt | tail -1)
+          APKSIGNER=$(ls $ANDROID_HOME/build-tools/*/apksigner | tail -1)
+          for f in out/*.apk; do
+            echo "== $f ($(stat -c%s "$f") bytes)"
+            $APKSIGNER verify --print-certs "$f" | grep -E "SHA-256|Verifies"
+            $AAPT dump badging "$f" | grep -E "^package|sdkVersion|native-code"
+          done
+      - name: Commit and push source change
+        run: |
+          rm -f sign.jks
+          git add -A feature gradle app temp
+          git -c user.name="ctmhod" -c user.email="290202009+ctmhod@users.noreply.github.com" commit -q -m "Smaller date pill and All time label (v0.1.45)"
+          git pull --rebase origin main || true
+          git push origin HEAD:main
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VER=0.1.45
+          cat > notes.md <<NOTES
+          Walletify v$VER, an offline money manager for Android.
+
+          Change: the date pill at the top of Home is smaller, and "Select all time" now shows "All time" instead of a confusing "To <date>".
+
+          Requires Android 10 (API 29) or newer.
+
+          Start with **Walletify-v$VER-0-universal.apk** (works on every device).
+          Smaller per-architecture files: arm64-v8a (most phones and tablets), armeabi-v7a (older 32-bit devices), x86_64 (emulators).
+          If the install fails with "App not installed", uninstall any older Walletify build first (signing key may differ).
+          NOTES
+          sed -i 's/^ *//' notes.md
+          gh release create "v$VER" out/*.apk --target main --title "Walletify v$VER" --notes-file notes.md
