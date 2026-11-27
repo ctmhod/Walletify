@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        api: [34]
+        api: [29, 34]
     steps:
       - uses: actions/checkout@v4
       - name: Download x86_64 APK
