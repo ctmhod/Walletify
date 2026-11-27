@@ -205,7 +205,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun isLanguageOptionVisible(): Boolean {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+        return false
     }
 
     override fun onEvent(event: SettingsEvent) {
