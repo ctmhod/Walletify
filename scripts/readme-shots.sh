@@ -26,7 +26,7 @@ done
 snap onboarding-end
 python3 $U tap-text prompt_dismiss; sleep 2
 snap home
-add_expense() { adb shell input tap 540 1767; sleep 2; T "ADD EXPENSE" 3; for d in $1; do T $d 1; done; T Enter 3; T "$2" 3; }
+add_expense() { adb shell input tap 540 1767; sleep 2; T "ADD EXPENSE" 3; for d in $1; do T $d 1; done; T Enter 3; T "$2" 3; T Add 3; }
 add_expense "4 5" "Groceries"; snap after-first
 add_expense "1 2 0" "Bills & Fees"
 add_expense "3 0" "Transport"
