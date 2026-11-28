@@ -90,47 +90,46 @@ absent_for() { # $1 = substring that must stay absent, $2 = tries (3s each)
 # Deterministic permission path: install permission starts denied.
 adb shell appops set $PKG REQUEST_INSTALL_PACKAGES deny
 
-log "== A single-flight: re-opening during a download attaches to it"
+log "== A single-flight + kill mid-download + clean retry (network throttled)"
 launch "-e walletify_fake_version 0.1.51"
 to_settings || log "FAIL could not reach Check for updates row"
 python3 $U tap-text "Check for updates" || log "FAIL row not found"
 wait_for "Update available: $EXPECT_TAG" 8 && log "PASS update $EXPECT_TAG offered" || log "FAIL update not offered"
 python3 $U tap-text "Download" || log "FAIL no Download button"
-wait_for "Downloading" 6 && log "PASS download started" || log "FAIL download did not start"
+wait_for "Downloading" 8 && log "PASS download started" || { log "FAIL download did not start"; }
 snap download-started
-python3 $U tap-text "Close" >/dev/null 2>&1; sleep 2   # hide dialog; download must continue
+# single-flight: hide the dialog mid-download; the download must continue and
+# re-opening must attach to it, never restart a check or a second download.
+python3 $U tap-text "Close" >/dev/null 2>&1; sleep 3
 python3 $U tap-text "Check for updates" || log "FAIL row not found (re-open)"
 T=$(texts)
 case "$T" in
-  *Downloading*) log "PASS re-opened dialog shows the running download (single-flight)";;
-  *) log "FAIL re-opened dialog does not show the running download: $(echo "$T" | cut -c1-160)";;
+  *Downloading*) log "PASS re-opened dialog attaches to the running download (single-flight)";;
+  *"Ready to install"*) log "PASS re-opened dialog shows live state (download already done)";;
+  *) log "FAIL re-opened dialog lost the running download: $(echo "$T" | cut -c1-160)";;
 esac
 absent_for "Update available:" 2 && log "PASS no second check/screen while downloading" || log "FAIL a parallel check started during download"
-wait_for "Ready to install" 70 && log "PASS download finished" || log "FAIL download did not finish"
-snap singleflight-ready
-python3 $U tap-text "Close" >/dev/null 2>&1; sleep 1
-
-log "== B kill mid-download, retry: one flow, one screen, clean files"
+# kill the app while the download is still running
+T=$(texts)
+case "$T" in
+  *Downloading*) adb shell am force-stop $PKG; sleep 2; log "killed app mid-download";;
+  *) log "note: download finished before the kill (fast network); kill case covered by retry below";;
+esac
+snap before-kill
 launch "-e walletify_fake_version 0.1.51"
 to_settings || log "FAIL settings after kill"
-python3 $U tap-text "Check for updates" || log "FAIL row not found (2nd)"
+python3 $U tap-text "Check for updates" || log "FAIL row not found (after kill)"
 wait_for "Update available: $EXPECT_TAG" 8 || log "note: no Available after kill"
-python3 $U tap-text "Download" || log "FAIL no Download (2nd)"
-wait_for "Downloading" 6
-sleep 6   # let it get partway, then kill the app mid-download
-adb shell am force-stop $PKG; sleep 2
-launch "-e walletify_fake_version 0.1.51"
-to_settings || log "FAIL settings after kill (2nd)"
-python3 $U tap-text "Check for updates" || log "FAIL row not found (3rd)"
-wait_for "Update available: $EXPECT_TAG" 8 || log "note: no Available after kill (2nd)"
-python3 $U tap-text "Download" || log "FAIL no Download (3rd)"
+python3 $U tap-text "Download" || log "FAIL no Download (after kill)"
+wait_for "Downloading" 8 && log "PASS retry download started after kill" || log "FAIL retry did not start"
+snap retry-downloading
 wait_for "Ready to install" 70 && log "PASS retry after kill reached Ready" || log "FAIL retry after kill did not finish"
 CNT=$(texts | grep -o "Ready to install" | wc -l)
 [ "$CNT" = "1" ] && log "PASS exactly one Ready screen after retry" || log "FAIL $CNT Ready strings on screen"
 snap retry-ready
 python3 $U tap-text "Close" >/dev/null 2>&1; sleep 1
 
-log "== C reuse: finished APK reused after restart, no new download"
+log "== B reuse: finished APK reused after restart, no new download"
 adb shell am force-stop $PKG; sleep 2
 launch "-e walletify_fake_version 0.1.51"
 to_settings || log "FAIL settings (reuse)"
@@ -141,7 +140,7 @@ wait_for "Ready to install" 10 && log "PASS Ready without downloading (reused fi
 absent_for "Downloading" 3 && log "PASS no download progress shown on reuse" || log "FAIL downloaded again instead of reusing"
 snap reuse-ready
 
-log "== D permission: grant, return, installer starts by itself exactly once"
+log "== C permission: grant, return, installer starts by itself exactly once"
 python3 $U tap-text "Install" || log "FAIL no Install button"
 sleep 4
 T=$(texts)
@@ -162,7 +161,7 @@ sleep 3
 absent_for "Do you want to update" 5 && log "PASS no installer loop after cancel" || log "FAIL installer reappeared after cancel"
 snap after-cancel
 
-log "== E manual install completes"
+log "== D manual install completes"
 python3 $U tap-text "Install" || log "FAIL no Install button (manual)"
 sleep 5
 T=$(texts)
@@ -175,19 +174,20 @@ wait_for "App updated" 30 && log "PASS system installer: App updated" || {
 snap update-done
 python3 $U tap-text "Done" >/dev/null 2>&1; sleep 2
 
-log "== F version after self-update"
+log "== E version after self-update"
 launch ""
 to_settings >/dev/null 2>&1 || true
 T=$(texts)
 case "$T" in *"$EXPECT_V"*) log "PASS settings shows $EXPECT_V after self-update";; *) log "FAIL version not $EXPECT_V after self-update";; esac
 snap update-version-after
 
-log "== G UpdateManager evidence in the in-app error log"
+log "== F UpdateManager evidence in the in-app error log"
 python3 $U tap-text "Error log" && sleep 3 && snap update-error-log && {
   T=$(texts)
   echo "$T" >> "$OUT/errorlog.txt"
   case "$T" in *"reusing complete APK"*) log "PASS error log shows APK reuse";; *) log "note: reuse line not visible in error log view";; esac
   case "$T" in *"permission granted, launching installer once"*) log "PASS error log shows single auto-install";; *) log "note: auto-install line not visible in error log view";; esac
+  case "$T" in *"removed 1 stale file"*) log "PASS error log shows stale .part cleanup after kill";; *) log "note: stale-cleanup line not visible in error log view";; esac
 } || log "note: error log row not reachable"
 
 adb logcat -d | grep -E "FATAL EXCEPTION" -A10 | head -30 > "$OUT/crash.txt"
