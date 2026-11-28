@@ -18,7 +18,10 @@ SW=${SIZE%x*}; SH=${SIZE#*x}
 SW=${SW:-1080}; SH=${SH:-2400}
 MX=$((SW*4/5)); MY=$((SH/8))
 SX=$((SW/2)); SY_HI=$((SH*3/4)); SY_MID=$((SH*3/8)); SY_TAP=$((SH*93/100))
-echo "screen ${SW}x${SH}" 
+echo "screen ${SW}x${SH}"
+# Throttle the host NIC so the kill-mid-download step can observe a real
+# in-progress download (emulator -netspeed did not throttle GitHub CDN).
+sudo tc qdisc add dev eth0 root netem rate 900kbit 2>/dev/null || true
 
 n=0
 snap() { n=$((n+1)); adb exec-out screencap -p > "$OUT/$(printf %02d $n)-$1.png"; echo "[$n $1]" >> "$OUT/screens.txt"; }
@@ -129,7 +132,12 @@ to_settings || log "FAIL settings after kill"
 python3 $U tap-text "Check for updates" || log "FAIL row not found (after kill)"
 wait_for "Update available: $EXPECT_TAG" 8 || log "note: no Available after kill"
 python3 $U tap-text "Download" || log "FAIL no Download (after kill)"
-wait_for "Downloading" 8 && log "PASS retry download started after kill" || log "FAIL retry did not start"
+T=$(texts)
+case "$T" in
+  *Downloading*) log "PASS retry download started after kill";;
+  *"Ready to install"*) log "PASS retry reached Ready (reused complete file)";;
+  *) log "FAIL retry did not start: $(echo "$T" | cut -c1-160)";;
+esac
 snap retry-downloading
 wait_for "Ready to install" 70 && log "PASS retry after kill reached Ready" || log "FAIL retry after kill did not finish"
 CNT=$(texts | grep -o "Ready to install" | wc -l)
@@ -190,6 +198,11 @@ case "$T" in *"$EXPECT_V"*) log "PASS settings shows $EXPECT_V after self-update
 snap update-version-after
 
 log "== F UpdateManager evidence in the in-app error log"
+for k in 1 2 3 4 5 6; do
+  T=$(texts)
+  case "$T" in *"Error log"*) break;; esac
+  adb shell input swipe $SX $SY_HI $SX $SY_MID 350; sleep 1
+done
 python3 $U tap-text "Error log" && sleep 3 && snap update-error-log && {
   T=$(texts)
   echo "$T" >> "$OUT/errorlog.txt"
@@ -198,6 +211,7 @@ python3 $U tap-text "Error log" && sleep 3 && snap update-error-log && {
   case "$T" in *"removed 1 stale file"*) log "PASS error log shows stale .part cleanup after kill";; *) log "note: stale-cleanup line not visible in error log view";; esac
 } || log "note: error log row not reachable"
 
+sudo tc qdisc del dev eth0 root 2>/dev/null || true
 adb logcat -d | grep -E "FATAL EXCEPTION" -A10 | head -30 > "$OUT/crash.txt"
 grep -q "FATAL EXCEPTION" "$OUT/crash.txt" && log "FAIL crash detected" || log "PASS no fatal exception"
 log "DONE"

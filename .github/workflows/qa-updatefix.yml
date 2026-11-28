@@ -36,9 +36,7 @@ jobs:
           arch: x86_64
           target: google_apis
           disable-animations: true
-          # Throttle to ~250 KB/s so the kill-mid-download and single-flight
-          # steps can actually observe an in-progress download.
-          emulator-options: -no-window -no-snapshot-save -netspeed 2000:2000
+          emulator-options: -no-window -no-snapshot-save
           script: bash scripts/updatefix.sh app.apk out "$LATEST_TAG"
       - name: Upload evidence
         if: always()
