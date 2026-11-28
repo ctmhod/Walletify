@@ -12,6 +12,13 @@ adb logcat -c
 adb install -r "$APK" | tee "$OUT/install.txt"
 grep -q Success "$OUT/install.txt" || { log "INSTALL FAILED"; exit 1; }
 adb shell wm size 1080x2400; adb shell wm density 420
+sleep 1
+SIZE=$(adb shell wm size | tr ' ' '\n' | tail -1)
+SW=${SIZE%x*}; SH=${SIZE#*x}
+SW=${SW:-1080}; SH=${SH:-2400}
+MX=$((SW*4/5)); MY=$((SH/8))
+SX=$((SW/2)); SY_HI=$((SH*3/4)); SY_MID=$((SH*3/8)); SY_TAP=$((SH*93/100))
+echo "screen ${SW}x${SH}" 
 
 n=0
 snap() { n=$((n+1)); adb exec-out screencap -p > "$OUT/$(printf %02d $n)-$1.png"; echo "[$n $1]" >> "$OUT/screens.txt"; }
@@ -29,18 +36,18 @@ to_settings() {
     python3 $U tap-text close >/dev/null 2>&1; sleep 2
     python3 $U tap-text prompt_dismiss >/dev/null 2>&1; sleep 2
     python3 $U centers > /tmp/c0.txt
-    set -- $(awk '$1>900 && $2<300 {print $1, $2; exit}' /tmp/c0.txt)
+    set -- $(awk -v mx=$MX -v my=$MY '$1>mx && $2<my {print $1, $2; exit}' /tmp/c0.txt)
     [ $# -ge 2 ] && adb shell input tap $1 $2; sleep 3
     python3 $U tap-text "Settings"; sleep 3
     for k in $(seq 1 14); do
       T=$(texts)
       case "$T" in *"Check for updates"*) return 0;; esac
-      adb shell input swipe 540 1700 540 900 350; sleep 1
+      adb shell input swipe $SX $SY_HI $SX $SY_MID 350; sleep 1
     done
     return 1;;
   esac
   python3 $U tap-first CheckBox >/dev/null 2>&1; sleep 1
-  for j in 1 2; do adb shell input swipe 540 1800 540 600 300; sleep 1; done
+  for j in 1 2; do adb shell input swipe $SX $SY_HI $SX $SY_MID 300; sleep 1; done
   python3 $U tap-bottom >/dev/null 2>&1; sleep 5
   for k in $(seq 1 16); do
     T=$(texts)
@@ -49,7 +56,8 @@ to_settings() {
     case "$T" in
       *"Offline account"*) python3 $U tap-text "Offline account"; sleep 4;;
       *"your name"*|*"What is your name"*) adb shell input text Demo; sleep 1; python3 $U tap-text Next || python3 $U tap-text Skip; sleep 3;;
-      *"Import backup file"*) python3 $U tap-text "Start fresh" || adb shell input tap 540 2235; sleep 3;;
+      *"Import backup file"*) python3 $U tap-text "Start fresh" || adb shell input tap $SX $SY_TAP; sleep 3;;
+      *"Import CSV file"*) python3 $U tap-text close >/dev/null 2>&1 || python3 $U tap-text "Start fresh" >/dev/null 2>&1; sleep 3;;
       *"Start fresh"*) python3 $U tap-text "Start fresh"; sleep 3;;
       *"currency"*) python3 $U tap-text "Set" || python3 $U tap-bottom; sleep 3;;
       *"Add accounts"*|*"Add categories"*) python3 $U tap-text "Skip"; sleep 3;;
@@ -58,13 +66,13 @@ to_settings() {
   done
   python3 $U tap-text prompt_dismiss >/dev/null 2>&1; sleep 2
   python3 $U centers > /tmp/c0.txt
-  set -- $(awk '$1>900 && $2<300 {print $1, $2; exit}' /tmp/c0.txt)
+  set -- $(awk -v mx=$MX -v my=$MY '$1>mx && $2<my {print $1, $2; exit}' /tmp/c0.txt)
   [ $# -ge 2 ] && adb shell input tap $1 $2; sleep 3
   python3 $U tap-text "Settings"; sleep 3
   for k in $(seq 1 14); do
     T=$(texts)
     case "$T" in *"Check for updates"*) return 0;; esac
-    adb shell input swipe 540 1700 540 900 350; sleep 1
+    adb shell input swipe $SX $SY_HI $SX $SY_MID 350; sleep 1
   done
   return 1
 }
