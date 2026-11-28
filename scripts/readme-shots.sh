@@ -16,7 +16,7 @@ for k in $(seq 1 12); do
   case "$X" in *"Adjust your initial balance"*|*"No transactions"*) break;; esac
   case "$X" in
     *"Offline account"*) python3 $U tap-text "Offline account"; sleep 4;;
-    *"Next"*"name"*|*"Your name"*) adb shell input text Demo; sleep 1; T Next 3;;
+    *"your name"*|*"What's your name"*) adb shell input text Demo; sleep 1; T Next 3;;
     *"Start fresh"*) python3 $U tap-text "Start fresh"; sleep 3;;
     *"Set currency"*) python3 $U tap-text "Set"; sleep 3;;
     *"Add accounts"*|*"Add categories"*) python3 $U tap-text "Skip"; sleep 3;;
