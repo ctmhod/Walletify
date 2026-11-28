@@ -14,13 +14,23 @@ An offline money manager for Android. Your data stays on your device.
 
 ## Screenshots
 
-Walletify v0.1.51 on an Android emulator, with demo data.
+Walletify v0.1.52 on an Android emulator, with demo data.
 
 <p align="center">
-  <img src="docs/screenshots/01-home.png" width="200" alt="Home screen with demo transactions">
-  <img src="docs/screenshots/02-add-expense.png" width="200" alt="Adding an expense">
-  <img src="docs/screenshots/03-menu.png" width="200" alt="Menu">
-  <img src="docs/screenshots/04-settings.png" width="200" alt="Settings">
+  <img src="docs/screenshots/01-onboarding-agree.png" width="200" alt="Onboarding: terms and offline account">
+  <img src="docs/screenshots/02-onboarding-end.png" width="200" alt="Onboarding: set your initial balance">
+  <img src="docs/screenshots/03-home.png" width="200" alt="Home with demo transactions">
+  <img src="docs/screenshots/04-home-more.png" width="200" alt="Home: more transactions">
+  <img src="docs/screenshots/05-add-sheet.png" width="200" alt="Add income, expense or transfer">
+  <img src="docs/screenshots/06-add-expense-keypad.png" width="200" alt="Adding an expense">
+  <img src="docs/screenshots/07-menu.png" width="200" alt="Menu">
+  <img src="docs/screenshots/08-categories.png" width="200" alt="Categories">
+  <img src="docs/screenshots/09-planned-payments.png" width="200" alt="Planned payments">
+  <img src="docs/screenshots/10-budgets.png" width="200" alt="Budgets">
+  <img src="docs/screenshots/11-reports.png" width="200" alt="Reports">
+  <img src="docs/screenshots/12-settings.png" width="200" alt="Settings">
+  <img src="docs/screenshots/13-settings-more.png" width="200" alt="Settings: more options">
+  <img src="docs/screenshots/14-check-updates.png" width="200" alt="Check for updates: you are on the latest version">
 </p>
 
 ## Download
