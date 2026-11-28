@@ -33,25 +33,34 @@ add_expense "1 2 0" "Bills & Fees"
 add_expense "3 0" "Transport"
 for k in 1 2 3; do python3 $U tap-text prompt_dismiss >/dev/null 2>&1; sleep 2; done
 snap home
-adb shell input swipe 540 1700 540 900 400; sleep 2; snap home-more
-adb shell input swipe 540 900 540 1700 400; sleep 1
+adb shell input swipe 300 1700 300 900 400; sleep 2; snap home-more
+adb shell input swipe 300 900 300 1700 400; sleep 1
 adb shell input tap 540 1767; sleep 2; snap add-sheet
 T "ADD EXPENSE" 3; T 5; T 0; snap add-expense-keypad
 adb shell input keyevent 4; sleep 1; adb shell input keyevent 4; sleep 1
-# More menu pages
-adb shell am force-stop $PKG; adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1; sleep 7
-python3 $U tap-text prompt_dismiss >/dev/null 2>&1; sleep 1
-adb shell input tap 975 179; sleep 3; snap menu
-T Categories 3; snap categories; adb shell input keyevent 4; sleep 2
-adb shell input tap 975 179; sleep 2
-T "Planned payments" 3; snap planned-payments; adb shell input keyevent 4; sleep 2
-adb shell input tap 975 179; sleep 2
-T Budgets 3; snap budgets; adb shell input keyevent 4; sleep 2
-adb shell input tap 975 179; sleep 2
-T Reports 3; sleep 3; snap reports; adb shell input keyevent 4; sleep 2
-# Settings + Check for updates
-adb shell input tap 975 179; sleep 2
-T Settings 3; snap settings
+# More menu pages. go_menu lands on the Quick access menu from any state.
+go_menu() {
+  for i in $(seq 1 8); do
+    X=$(python3 $U texts)
+    case "$X" in
+      *"Quick access"*) return 0;;
+      *"Hi Demo"*)
+        python3 $U tap-text prompt_dismiss >/dev/null 2>&1; sleep 1
+        adb shell input tap 975 179; sleep 3; return 0;;
+    esac
+    adb shell input keyevent 4; sleep 2
+  done
+  adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1; sleep 7
+  python3 $U tap-text prompt_dismiss >/dev/null 2>&1; sleep 1
+  adb shell input tap 975 179; sleep 3
+}
+adb shell am force-stop $PKG
+go_menu; snap menu
+go_menu; T Categories 3; snap categories
+go_menu; T "Planned Payments" 3; snap planned-payments
+go_menu; T Budgets 3; snap budgets
+go_menu; T Reports 3; sleep 3; snap reports
+go_menu; T Settings 3; snap settings
 for k in $(seq 1 14); do
   X=$(python3 $U texts)
   case "$X" in *"Check for updates"*) break;; esac
