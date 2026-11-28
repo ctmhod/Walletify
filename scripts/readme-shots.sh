@@ -28,6 +28,8 @@ python3 $U tap-text prompt_dismiss; sleep 2
 snap home
 adb shell input tap 540 1767; sleep 2; snap fab
 T "ADD EXPENSE" 3; T 5; T 0; T 0; snap keypad
+T Enter 3; snap after-enter; python3 $U clickables | tee -a "$OUT/screens.txt"
+T "Add category" 3; snap pick-category; python3 $U clickables | tee -a "$OUT/screens.txt"
 adb shell input keyevent 4; sleep 1; adb shell input keyevent 4; sleep 1
 adb shell am force-stop $PKG; adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1; sleep 7
 python3 $U tap-text prompt_dismiss >/dev/null 2>&1; sleep 1
