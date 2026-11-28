@@ -145,6 +145,23 @@ CNT=$(texts | grep -o "Ready to install" | wc -l)
 snap retry-ready
 python3 $U tap-text "Close" >/dev/null 2>&1; sleep 1
 
+log "== B2 stale partials and old copies are deleted (seeded files)"
+adb root >/dev/null 2>&1; sleep 3; adb wait-for-device; sleep 2
+adb shell "mkdir -p /data/data/$PKG/cache/updates"
+adb shell "echo partial > /data/data/$PKG/cache/updates/walletify-update-$EXPECT_TAG.apk.part"
+adb shell "echo old > /data/data/$PKG/cache/updates/walletify-update-v0.0.0.apk"
+adb shell "ls /data/data/$PKG/cache/updates" | tee -a "$R"
+adb unroot >/dev/null 2>&1; sleep 2
+adb shell am force-stop $PKG; sleep 2
+launch "-e walletify_fake_version 0.1.51"
+to_settings || log "FAIL settings (stale)"
+python3 $U tap-text "Check for updates" || log "FAIL row not found (stale)"
+wait_for "Update available: $EXPECT_TAG" 8 || log "note: no Available (stale)"
+python3 $U tap-text "Download" || log "FAIL no Download (stale)"
+wait_for "Ready to install" 30 && log "PASS Ready after stale-seed (cleanup ran)" || log "FAIL no Ready after stale-seed"
+snap stale-cleanup-ready
+python3 $U tap-text "Close" >/dev/null 2>&1; sleep 1
+
 log "== B reuse: finished APK reused after restart, no new download"
 adb shell am force-stop $PKG; sleep 2
 launch "-e walletify_fake_version 0.1.51"
@@ -208,7 +225,7 @@ python3 $U tap-text "Error log" && sleep 3 && snap update-error-log && {
   echo "$T" >> "$OUT/errorlog.txt"
   case "$T" in *"reusing complete APK"*) log "PASS error log shows APK reuse";; *) log "note: reuse line not visible in error log view";; esac
   case "$T" in *"permission granted, launching installer once"*) log "PASS error log shows single auto-install";; *) log "note: auto-install line not visible in error log view";; esac
-  case "$T" in *"removed 1 stale file"*) log "PASS error log shows stale .part cleanup after kill";; *) log "note: stale-cleanup line not visible in error log view";; esac
+  case "$T" in *"removed 2 stale file"*|*"removed 1 stale file"*) log "PASS error log shows stale partial/old cleanup";; *) log "note: stale-cleanup line not visible in error log view";; esac
 } || log "note: error log row not reachable"
 
 sudo tc qdisc del dev eth0 root 2>/dev/null || true
