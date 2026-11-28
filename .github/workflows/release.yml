@@ -49,7 +49,7 @@ jobs:
           cat > notes.md <<NOTES
           Walletify v$VER, an offline money manager for Android.
 
-          New in v0.1.55: Brings back the classic launcher icon from v0.1.51. Includes Check for updates in Settings, added in v0.1.52.
+          New in v0.1.56: Launcher icon back to the classic glossy letter tile. Includes Check for updates in Settings, added in v0.1.52.
 
           Requires Android 10 (API 29) or newer.
 
