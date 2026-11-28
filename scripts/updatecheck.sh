@@ -25,6 +25,23 @@ launch() { # $1 = extra args
 
 to_settings() { # from a fresh launch: finish onboarding if needed, open Settings
   sleep 4
+  T0=$(texts)
+  case "$T0" in *"Adjust your initial balance"*|*"No transactions"*|*"Hi "*)
+    # onboarding already done: never tap-bottom here, it opens the Add Expense sheet
+    python3 $U tap-text close >/dev/null 2>&1; sleep 2
+    python3 $U tap-text prompt_dismiss >/dev/null 2>&1; sleep 2
+    # top-right more menu, then Settings
+    python3 $U centers > /tmp/c0.txt
+    set -- $(awk '$1>900 && $2<300 {print $1, $2; exit}' /tmp/c0.txt)
+    [ $# -ge 2 ] && adb shell input tap $1 $2; sleep 3
+    python3 $U tap-text "Settings"; sleep 3
+    for k in $(seq 1 14); do
+      T=$(texts)
+      case "$T" in *"Check for updates"*) return 0;; esac
+      adb shell input swipe 540 1700 540 900 350; sleep 1
+    done
+    return 1;;
+  esac
   python3 $U tap-first CheckBox >/dev/null 2>&1; sleep 1
   for j in 1 2; do adb shell input swipe 540 1800 540 600 300; sleep 1; done
   python3 $U tap-bottom >/dev/null 2>&1; sleep 5
@@ -34,7 +51,7 @@ to_settings() { # from a fresh launch: finish onboarding if needed, open Setting
     case "$T" in *"Adjust your initial balance"*|*"No transactions"*|*"Hi "*) break;; esac
     case "$T" in
       *"Offline account"*) python3 $U tap-text "Offline account"; sleep 4;;
-      *"your name"*|*"What is your name"*) adb shell input text Demo; sleep 1; python3 $U tap-text Next; sleep 3;;
+      *"your name"*|*"What is your name"*) adb shell input text Demo; sleep 1; python3 $U tap-text Next || python3 $U tap-text Skip; sleep 3;;
       *"Import backup file"*) python3 $U tap-text "Start fresh" || adb shell input tap 540 2235; sleep 3;;
       *"Start fresh"*) python3 $U tap-text "Start fresh"; sleep 3;;
       *"currency"*) python3 $U tap-text "Set" || python3 $U tap-bottom; sleep 3;;
