@@ -1,5 +1,9 @@
 # Walletify
 
+<p align="center">
+  <img src="docs/icon.png" width="128" alt="Walletify icon">
+</p>
+
 An offline money manager for Android. Your data stays on your device.
 
 ## Features

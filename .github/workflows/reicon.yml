@@ -1,0 +1,94 @@
+name: Walletify re-icon old release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag whose APK assets get the new icon (assets replaced in place, release kept)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  reicon:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main (icon assets + swap script)
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install Android SDK build-tools
+        run: |
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager "build-tools;36.0.0" || true
+          echo "$ANDROID_HOME/build-tools/36.0.0" >> "$GITHUB_PATH"
+
+      - name: Install Pillow
+        run: pip install pillow
+
+      - name: Decode keystore
+        run: |
+          mkdir -p /tmp/sign
+          echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > /tmp/sign/walletify.jks
+
+      - name: Download current assets of ${{ inputs.tag }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p assets
+          gh release download "${{ inputs.tag }}" --dir assets --clobber
+          ls -la assets
+
+      - name: Swap icon pixels in every APK
+        run: |
+          set -e
+          mkdir -p out
+          for a in assets/*.apk; do
+            base=$(basename "$a")
+            echo "== $base =="
+            python3 reicon/swap_webp.py "$a" reicon/new "out/$base"
+          done
+
+      - name: Align, re-sign with the Walletify key, verify
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          set -e
+          for f in out/*.apk; do
+            base=$(basename "$f")
+            zipalign -f 4 "$f" "aligned-$base"
+            apksigner sign --ks /tmp/sign/walletify.jks \
+              --ks-pass "pass:$KEYSTORE_PASSWORD" \
+              --key-pass "pass:$KEYSTORE_PASSWORD" \
+              --ks-key-alias walletify \
+              --out "signed-$base" "aligned-$base"
+            apksigner verify --print-certs "signed-$base" | head -2
+            apksigner verify --print-certs "signed-$base" | grep -qi "750fb178" \
+              || { echo "UNEXPECTED SIGNING CERT for $base"; exit 1; }
+            mv "signed-$base" "out/$base"
+            rm -f "aligned-$base"
+          done
+
+      - name: Report versions
+        run: |
+          for f in out/*.apk; do
+            echo "== $(basename "$f") =="
+            aapt dump badging "$f" | grep -E "^(package|application-label):" | head -2
+          done
+
+      - name: Replace assets in place (no release deletion)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          for f in out/*.apk; do
+            gh release upload "${{ inputs.tag }}" "$f" --clobber
+          done
+          echo "Assets of ${{ inputs.tag }} replaced in place:"
+          gh release view "${{ inputs.tag }}" --json assets --jq '.assets[] | "\(.name) \(.size)"'
