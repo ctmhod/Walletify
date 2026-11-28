@@ -1,6 +1,6 @@
 # Third-party notices
 
-Walletify is a modified version of [Ivy Wallet](https://github.com/Ivy-Apps/ivy-wallet) (GPL-3.0, Copyright (C) Ivy Apps and contributors). The full license text is in [LICENSE](LICENSE).
+Based on [Ivy Wallet](https://github.com/Ivy-Apps/ivy-wallet) (GPL-3.0). License text: [LICENSE](LICENSE).
 
 The app uses the following open-source projects, icons and fonts. Each is used under its own license; see the linked project for the license text.
 

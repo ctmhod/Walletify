@@ -14,7 +14,7 @@ Open the latest release and start with `Walletify-vX-0-universal.apk` (works eve
 Smaller files: `arm64-v8a` (most phones and tablets), `armeabi-v7a` (old 32-bit devices), `x86_64` (emulators).
 
 ## License
-GPL-3.0, see [LICENSE](LICENSE). Third-party credits: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Walletify is a modified version of [Ivy Wallet](https://github.com/Ivy-Apps/ivy-wallet), Copyright (C) Ivy Apps and contributors.
+GPL-3.0, see [LICENSE](LICENSE). Third-party credits: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Privacy
 Walletify sends none of your data anywhere: no accounts, analytics, ads or crash reporting (exchange rates are downloaded on request). Everything is stored locally on your device.
