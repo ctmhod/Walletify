@@ -60,7 +60,14 @@ to_settings() {
       *"Offline account"*) python3 $U tap-text "Offline account"; sleep 4;;
       *"your name"*|*"What is your name"*) adb shell input text Demo; sleep 1; python3 $U tap-text Next || python3 $U tap-text Skip; sleep 3;;
       *"Import backup file"*) python3 $U tap-text "Start fresh" || adb shell input tap $SX $SY_TAP; sleep 3;;
-      *"Import CSV file"*) python3 $U tap-text close >/dev/null 2>&1 || python3 $U tap-text "Start fresh" >/dev/null 2>&1; sleep 3;;
+      *"Import CSV file"*)
+        # Small screens: the "Start fresh" button is below the fold; the
+        # onboarding root scrolls, so swipe up to reveal it. Never tap the
+        # X here - it goes back to the name step.
+        adb shell input swipe $SX $SY_HI $SX $SY_MID 300; sleep 1
+        adb shell input swipe $SX $SY_HI $SX $SY_MID 300; sleep 1
+        python3 $U tap-text "start fresh" x >/dev/null 2>&1 || python3 $U tap-bottom >/dev/null 2>&1
+        sleep 3;;
       *"Start fresh"*) python3 $U tap-text "Start fresh"; sleep 3;;
       *"currency"*) python3 $U tap-text "Set" || python3 $U tap-bottom; sleep 3;;
       *"Add accounts"*|*"Add categories"*) python3 $U tap-text "Skip"; sleep 3;;
