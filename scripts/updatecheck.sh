@@ -4,6 +4,7 @@
 # Usage: updatecheck.sh APK OUTDIR
 set -u
 APK="$1"; PKG=com.ctmhod.walletify; OUT="$2"; mkdir -p "$OUT"; U=scripts/ui.py
+EXPECT_TAG="$3"; EXPECT_V="${EXPECT_TAG#v}"
 R="$OUT/report.txt"; : > "$R"
 log(){ echo "$*" | tee -a "$R"; }
 adb logcat -c
@@ -24,21 +25,20 @@ launch() { # $1 = extra args
 
 to_settings() { # from a fresh launch: finish onboarding if needed, open Settings
   sleep 4
-  T=$(texts)
-  case "$T" in
-    *"Agree to all"*|*CheckBox*)
-      python3 $U tap-first CheckBox; sleep 1
-      python3 $U tap-bottom; sleep 5;;
-  esac
-  for k in $(seq 1 12); do
+  python3 $U tap-first CheckBox >/dev/null 2>&1; sleep 1
+  for j in 1 2; do adb shell input swipe 540 1800 540 600 300; sleep 1; done
+  python3 $U tap-bottom >/dev/null 2>&1; sleep 5
+  for k in $(seq 1 16); do
     T=$(texts)
+    echo "[onboard $k] $(echo "$T" | cut -c1-250)" >> "$OUT/screens.txt"
     case "$T" in *"Adjust your initial balance"*|*"No transactions"*|*"Hi "*) break;; esac
     case "$T" in
       *"Offline account"*) python3 $U tap-text "Offline account"; sleep 4;;
+      *"your name"*|*"What is your name"*) adb shell input text Demo; sleep 1; python3 $U tap-text Next; sleep 3;;
+      *"Import backup file"*) python3 $U tap-text "Start fresh" || adb shell input tap 540 2235; sleep 3;;
       *"Start fresh"*) python3 $U tap-text "Start fresh"; sleep 3;;
-      *"Set currency"*) python3 $U tap-text "Set"; sleep 3;;
+      *"currency"*) python3 $U tap-text "Set" || python3 $U tap-bottom; sleep 3;;
       *"Add accounts"*|*"Add categories"*) python3 $U tap-text "Skip"; sleep 3;;
-      *"Enter your name"*|*"What is your name"*) python3 $U tap-text "Next" || python3 $U tap-bottom; sleep 3;;
       *) sleep 3;;
     esac
   done
@@ -79,7 +79,7 @@ log "== B update flow from a posed old version"
 launch "-e walletify_fake_version 0.1.51"
 to_settings || log "FAIL could not reach Check for updates row (2nd)"
 python3 $U tap-text "Check for updates" || log "FAIL row not found (2nd)"
-wait_for "Update available: v0.1.52" 8 && log "PASS update v0.1.52 offered" || log "FAIL update not offered"
+wait_for "Update available: $EXPECT_TAG" 8 && log "PASS update $EXPECT_TAG offered" || log "FAIL update not offered"
 snap update-available
 python3 $U tap-text "Download" || log "FAIL no Download button"
 wait_for "Ready to install" 60 && log "PASS APK downloaded in app" || log "FAIL download did not finish"
@@ -109,7 +109,7 @@ log "== C version after self-update"
 launch ""
 to_settings >/dev/null 2>&1 || true
 T=$(texts)
-case "$T" in *"0.1.52"*) log "PASS settings shows 0.1.52 after self-update";; *) log "FAIL version not 0.1.52 after self-update";; esac
+case "$T" in *"$EXPECT_V"*) log "PASS settings shows $EXPECT_V after self-update";; *) log "FAIL version not $EXPECT_V after self-update";; esac
 snap update-version-after
 
 adb logcat -d | grep -E "FATAL EXCEPTION" -A10 | head -30 > "$OUT/crash.txt"
