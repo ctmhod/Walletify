@@ -30,7 +30,7 @@ add_expense() { adb shell input tap 540 1767; sleep 2; T "ADD EXPENSE" 3; for d 
 add_expense "4 5" "Groceries"; snap after-first
 add_expense "1 2 0" "Bills & Fees"
 add_expense "3 0" "Transport"
-python3 $U tap-text prompt_dismiss >/dev/null 2>&1; sleep 1
+for k in 1 2 3; do python3 $U tap-text prompt_dismiss >/dev/null 2>&1; sleep 2; done
 snap home-with-data
 adb shell input tap 540 1767; sleep 2; snap fab
 T "ADD EXPENSE" 3; T 5; T 0; snap keypad
