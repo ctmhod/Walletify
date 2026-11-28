@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # README screenshots with plain demo data. No music, no personal data.
+# One screenshot per screen. Status bar is cropped later, before committing.
 set -u
 PKG=com.ctmhod.walletify; OUT=out; U=scripts/ui.py; mkdir -p "$OUT"
 adb install -r app.apk >/dev/null
@@ -10,6 +11,7 @@ T() { python3 $U tap-text "$1"; sleep ${2:-2}; }
 adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1; sleep 10
 python3 $U tap-first CheckBox; sleep 1
 for j in 1 2; do adb shell input swipe 540 1800 540 600 300; sleep 1; done
+snap onboarding-agree
 python3 $U tap-bottom; sleep 5
 for k in $(seq 1 12); do
   X=$(python3 $U texts)
@@ -25,19 +27,44 @@ for k in $(seq 1 12); do
 done
 snap onboarding-end
 python3 $U tap-text prompt_dismiss; sleep 2
-snap home
 add_expense() { adb shell input tap 540 1767; sleep 2; T "ADD EXPENSE" 3; for d in $1; do T $d 1; done; T Enter 3; T "$2" 3; T Add 3; }
-add_expense "4 5" "Groceries"; snap after-first
+add_expense "4 5" "Groceries"
 add_expense "1 2 0" "Bills & Fees"
 add_expense "3 0" "Transport"
 for k in 1 2 3; do python3 $U tap-text prompt_dismiss >/dev/null 2>&1; sleep 2; done
-snap home-with-data
-adb shell input tap 540 1767; sleep 2; snap fab
-T "ADD EXPENSE" 3; T 5; T 0; snap keypad
+snap home
+adb shell input swipe 540 1700 540 900 400; sleep 2; snap home-more
+adb shell input swipe 540 900 540 1700 400; sleep 1
+adb shell input tap 540 1767; sleep 2; snap add-sheet
+T "ADD EXPENSE" 3; T 5; T 0; snap add-expense-keypad
 adb shell input keyevent 4; sleep 1; adb shell input keyevent 4; sleep 1
+# More menu pages
 adb shell am force-stop $PKG; adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1; sleep 7
 python3 $U tap-text prompt_dismiss >/dev/null 2>&1; sleep 1
 adb shell input tap 975 179; sleep 3; snap menu
+T Categories 3; snap categories; adb shell input keyevent 4; sleep 2
+adb shell input tap 975 179; sleep 2
+T "Planned payments" 3; snap planned-payments; adb shell input keyevent 4; sleep 2
+adb shell input tap 975 179; sleep 2
+T Budgets 3; snap budgets; adb shell input keyevent 4; sleep 2
+adb shell input tap 975 179; sleep 2
+T Reports 3; sleep 3; snap reports; adb shell input keyevent 4; sleep 2
+# Settings + Check for updates
+adb shell input tap 975 179; sleep 2
 T Settings 3; snap settings
+for k in $(seq 1 14); do
+  X=$(python3 $U texts)
+  case "$X" in *"Check for updates"*) break;; esac
+  adb shell input swipe 540 1700 540 900 350; sleep 1
+done
+snap settings-more
+T "Check for updates" 2
+for i in $(seq 1 10); do
+  X=$(python3 $U texts)
+  case "$X" in *"You are on the latest version"*|*"Update available"*) break;; esac
+  sleep 4
+done
+snap check-updates
+python3 $U tap-text Close >/dev/null 2>&1; sleep 1
 adb logcat -d | grep -E "FATAL EXCEPTION" -A10 | head -30 > "$OUT/crash.txt"
 true
