@@ -49,7 +49,7 @@ jobs:
           cat > notes.md <<NOTES
           Walletify v$VER, an offline money manager for Android.
 
-          New in v$VER: Launcher icon fits inside the adaptive-icon safe zone, so the W is no longer clipped on phones.
+          New in v$VER: the in-app updater no longer starts duplicate downloads or jumps between update screens after a cancelled update, a finished download is reused instead of downloading again, and after you allow app installs the installer now opens by itself, once.
 
           Requires Android 10 (API 29) or newer.
 

@@ -14,7 +14,7 @@ An offline money manager for Android. Your data stays on your device.
 
 ## Screenshots
 
-Screenshots captured on an Android emulator for v0.1.52 with demo data; current release: v0.1.57.
+Screenshots captured on an Android emulator for v0.1.52 with demo data; current release: v0.1.58.
 
 <p align="center">
   <img src="docs/screenshots/01-onboarding-agree.png" width="200" alt="Onboarding: terms and offline account">

@@ -22,16 +22,20 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -60,7 +64,6 @@ import com.ivy.navigation.ReleasesScreen
 import com.ivy.navigation.navigation
 import com.ivy.navigation.screenScopedViewModel
 import com.ivy.ui.R
-import kotlinx.coroutines.launch
 import com.ivy.wallet.domain.data.IvyCurrency
 import com.ivy.wallet.ui.theme.Gradient
 import com.ivy.wallet.ui.theme.GradientGreen
@@ -664,49 +667,32 @@ private fun ErrorLogButton() {
     }
 }
 
-private sealed interface UpdateUi {
-    data object Checking : UpdateUi
-    data object Latest : UpdateUi
-    data class Available(val update: UpdateChecker.Update) : UpdateUi
-    data class Downloading(val update: UpdateChecker.Update, val percent: Int) : UpdateUi
-    data class Ready(val update: UpdateChecker.Update, val needPermission: Boolean = false) : UpdateUi
-    data class Failed(val update: UpdateChecker.Update?, val wasDownload: Boolean) : UpdateUi
-}
-
 @Composable
 private fun CheckForUpdates() {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    var state by remember { mutableStateOf<UpdateUi?>(null) }
-    val apkFile = remember { java.io.File(context.cacheDir, "updates/walletify-update.apk") }
     val rootScreen = rootScreen()
+    UpdateManager.init(context)
+    val state by UpdateManager.state.collectAsState()
+    var visible by remember { mutableStateOf(false) }
 
     fun runCheck() {
-        state = UpdateUi.Checking
         // QA hook: a launch extra can pose as an older version.
         val fake = (context as? android.app.Activity)?.intent
             ?.getStringExtra("walletify_fake_version")
-        scope.launch {
-            state = when (val r = UpdateChecker.check(fake ?: rootScreen.buildVersionName)) {
-                UpdateChecker.CheckResult.Latest -> UpdateUi.Latest
-                is UpdateChecker.CheckResult.Available -> UpdateUi.Available(r.update)
-                is UpdateChecker.CheckResult.Error -> UpdateUi.Failed(null, false)
-            }
-        }
+        UpdateManager.check(fake ?: rootScreen.buildVersionName)
     }
 
-    fun runDownload(update: UpdateChecker.Update) {
-        state = UpdateUi.Downloading(update, 0)
-        scope.launch {
-            val res = UpdateChecker.download(update.assetUrl, apkFile) { p ->
-                state = UpdateUi.Downloading(update, p)
-            }
-            state = if (res.isSuccess) {
-                UpdateUi.Ready(update)
-            } else {
-                UpdateUi.Failed(update, true)
+    // After the system "install unknown apps" screen, resume hands back to
+    // UpdateManager, which starts the installer directly, exactly once.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                (context as? android.app.Activity)?.let(UpdateManager::onActivityResumed)
             }
         }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     SettingsDefaultButton(
@@ -714,19 +700,29 @@ private fun CheckForUpdates() {
         text = "Check for updates",
         iconPadding = 8.dp,
     ) {
-        runCheck()
+        // A tap while a check or download runs just re-opens its live state.
+        when (state) {
+            UpdateManager.State.Checking,
+            is UpdateManager.State.Downloading,
+            is UpdateManager.State.Ready -> Unit
+            else -> runCheck()
+        }
+        visible = true
     }
 
-    val s = state ?: return
+    if (!visible) return
+    val s = state
+    if (s is UpdateManager.State.Idle) return
     androidx.compose.material3.AlertDialog(
-        onDismissRequest = { state = null },
+        onDismissRequest = { visible = false },
         title = { Text("Check for updates") },
         text = {
             Column {
                 when (s) {
-                    UpdateUi.Checking -> Text("Checking for updates...")
-                    UpdateUi.Latest -> Text("You are on the latest version")
-                    is UpdateUi.Available -> Text(
+                    UpdateManager.State.Idle -> {}
+                    UpdateManager.State.Checking -> Text("Checking for updates...")
+                    UpdateManager.State.Latest -> Text("You are on the latest version")
+                    is UpdateManager.State.Available -> Text(
                         "Update available: ${s.update.tag}" +
                             if (s.update.sizeBytes > 0) {
                                 " (" + String.format(
@@ -739,7 +735,7 @@ private fun CheckForUpdates() {
                             }
                     )
 
-                    is UpdateUi.Downloading -> {
+                    is UpdateManager.State.Downloading -> {
                         Text("Downloading ${s.update.tag}... ${s.percent}%")
                         Spacer(Modifier.height(12.dp))
                         androidx.compose.material3.LinearProgressIndicator(
@@ -748,15 +744,16 @@ private fun CheckForUpdates() {
                         )
                     }
 
-                    is UpdateUi.Ready -> Text(
+                    is UpdateManager.State.Ready -> Text(
                         if (s.needPermission) {
-                            "Allow Walletify to install apps on the next screen, then come back and tap Install again."
+                            "Allow Walletify to install apps on the next screen. " +
+                                "The install starts by itself when you come back."
                         } else {
                             "Ready to install ${s.update.tag}"
                         }
                     )
 
-                    is UpdateUi.Failed -> Text(
+                    is UpdateManager.State.Failed -> Text(
                         if (s.wasDownload) {
                             "Download failed. Check your connection and try again."
                         } else {
@@ -768,28 +765,20 @@ private fun CheckForUpdates() {
         },
         confirmButton = {
             when (s) {
-                is UpdateUi.Available -> androidx.compose.material3.TextButton(
-                    onClick = { runDownload(s.update) }
+                is UpdateManager.State.Available -> androidx.compose.material3.TextButton(
+                    onClick = { UpdateManager.download(s.update) }
                 ) { Text("Download") }
 
-                is UpdateUi.Ready -> androidx.compose.material3.TextButton(
+                is UpdateManager.State.Ready -> androidx.compose.material3.TextButton(
                     onClick = {
-                        val activity = context as? android.app.Activity
-                        if (activity != null) {
-                            if (!UpdateChecker.canInstall(activity)) {
-                                state = UpdateUi.Ready(s.update, needPermission = true)
-                                UpdateChecker.openInstallPermission(activity)
-                            } else {
-                                UpdateChecker.install(activity, apkFile)
-                            }
-                        }
+                        (context as? android.app.Activity)?.let(UpdateManager::install)
                     }
                 ) { Text("Install") }
 
-                is UpdateUi.Failed -> androidx.compose.material3.TextButton(
+                is UpdateManager.State.Failed -> androidx.compose.material3.TextButton(
                     onClick = {
                         val u = s.update
-                        if (u == null) runCheck() else runDownload(u)
+                        if (u == null) runCheck() else UpdateManager.download(u)
                     }
                 ) { Text("Retry") }
 
@@ -797,7 +786,7 @@ private fun CheckForUpdates() {
             }
         },
         dismissButton = {
-            androidx.compose.material3.TextButton(onClick = { state = null }) { Text("Close") }
+            androidx.compose.material3.TextButton(onClick = { visible = false }) { Text("Close") }
         },
     )
 }
