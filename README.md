@@ -14,7 +14,7 @@ An offline money manager for Android. Your data stays on your device.
 
 ## Screenshots
 
-Screenshots captured on an Android emulator for v0.1.52 with demo data; current release: v0.1.56.
+Screenshots captured on an Android emulator for v0.1.52 with demo data; current release: v0.1.57.
 
 <p align="center">
   <img src="docs/screenshots/01-onboarding-agree.png" width="200" alt="Onboarding: terms and offline account">
@@ -35,8 +35,8 @@ Screenshots captured on an Android emulator for v0.1.52 with demo data; current 
 
 ## Download
 Requires Android 10 (API 29) or newer.
-Open the [latest release](https://github.com/ctmhod/Walletify/releases/latest) and choose `Walletify-vX-arm64-v8a.apk` first (most phones and tablets).
-Other builds: `armeabi-v7a` (older 32-bit devices), `x86` and `x86_64` (emulators), or `0-universal` (works on every device).
+Open the [latest release](https://github.com/ctmhod/Walletify/releases/latest) and choose `Walletify-vX-all-universal.apk` first (works on every device).
+Smaller per-CPU builds: `arm64-v8a` (most phones and tablets), `armeabi-v7a` (older 32-bit devices), `x86` and `x86_64` (emulators).
 
 ## License
 GPL-3.0, see [LICENSE](LICENSE). Third-party credits: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

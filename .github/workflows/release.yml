@@ -30,7 +30,7 @@ jobs:
           for f in app/build/outputs/apk/release/*.apk; do
             n=$(basename "$f" .apk)
             abi=${n#app-}; abi=${abi%-release}
-            if [ "$abi" = "universal" ]; then dest="Walletify-v$VER-0-universal.apk"; else dest="Walletify-v$VER-$abi.apk"; fi
+            if [ "$abi" = "universal" ]; then dest="Walletify-v$VER-all-universal.apk"; else dest="Walletify-v$VER-$abi.apk"; fi
             cp "$f" "out/$dest"
           done
           AAPT=$(ls $ANDROID_HOME/build-tools/*/aapt | tail -1)
@@ -49,18 +49,18 @@ jobs:
           cat > notes.md <<NOTES
           Walletify v$VER, an offline money manager for Android.
 
-          New in v0.1.56: Launcher icon back to the classic glossy letter tile. Includes Check for updates in Settings, added in v0.1.52.
+          New in v$VER: Launcher icon fits inside the adaptive-icon safe zone, so the W is no longer clipped on phones.
 
           Requires Android 10 (API 29) or newer.
 
-          Start with **Walletify-v$VER-arm64-v8a.apk** (most phones and tablets).
-          Other builds: armeabi-v7a (older 32-bit devices), x86 and x86_64 (emulators), and 0-universal (works on every device).
+          Start with **Walletify-v$VER-all-universal.apk** (works on every device).
+          Smaller per-CPU builds: arm64-v8a (most phones and tablets), armeabi-v7a (older 32-bit devices), x86 and x86_64 (emulators).
           If the install fails with "App not installed", uninstall any older Walletify build first (signing key may differ).
           NOTES
           gh release create "$TAG" \
+            "out/Walletify-v$VER-all-universal.apk" \
             "out/Walletify-v$VER-arm64-v8a.apk" \
             "out/Walletify-v$VER-armeabi-v7a.apk" \
             "out/Walletify-v$VER-x86.apk" \
             "out/Walletify-v$VER-x86_64.apk" \
-            "out/Walletify-v$VER-0-universal.apk" \
             --title "Walletify $TAG" --notes-file notes.md
