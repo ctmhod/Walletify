@@ -17,7 +17,9 @@ texts() { python3 $U texts; }
 
 launch() { # $1 = extra args
   adb shell am force-stop $PKG; sleep 1
-  adb shell am start -n $PKG/.RootActivity $1 >/dev/null 2>&1; sleep 12
+  # applicationId is com.ctmhod.walletify but the activity class lives in the
+  # com.ivy.wallet namespace, so the component must name the class in full.
+  adb shell am start -n $PKG/com.ivy.wallet.RootActivity $1; sleep 12
 }
 
 to_settings() { # from a fresh launch: finish onboarding if needed, open Settings
