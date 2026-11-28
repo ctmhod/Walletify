@@ -4,7 +4,8 @@ glossy-black wallet icon. Only pixel content of known icon entries changes;
 everything else stays byte-identical.
 
 Usage: swap_webp.py IN.apk NEWDIR OUT.apk
-NEWDIR holds fg432.png, mono432.png, icon512.png (composited square master).
+NEWDIR holds fg432.png, mono432.png, round432.png (circle-masked master),
+icon512.png (opaque square master over #07080D).
 
 Classification (works for both the old silver-wallet assets and the new
 glossy-black assets, so re-running is safe):
@@ -64,6 +65,7 @@ def main():
     fg = Image.open(f"{newdir}/fg432.png").convert("RGBA")
     mono = Image.open(f"{newdir}/mono432.png").convert("RGBA")
     icon = Image.open(f"{newdir}/icon512.png").convert("RGBA")
+    rnd = Image.open(f"{newdir}/round432.png").convert("RGBA")
     zin = zipfile.ZipFile(src)
     replacements = {}
     for name in zin.namelist():
@@ -79,7 +81,7 @@ def main():
             data = zin.read(info.filename)
             if info.filename in replacements:
                 kind, w = replacements[info.filename]
-                master = {"fg": fg, "mono": mono, "legacy": icon, "round": icon}[kind]
+                master = {"fg": fg, "mono": mono, "legacy": icon, "round": rnd}[kind]
                 data = render(master, w)
                 print(f"swap {info.filename} <- {kind}-{w}")
             zi = zipfile.ZipInfo(info.filename, date_time=info.date_time)
