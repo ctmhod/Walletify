@@ -8,6 +8,17 @@ An offline money manager for Android. Your data stays on your device.
 - Its own application id (`com.ctmhod.walletify`), so it installs beside any other app.
 - Release APKs are split per CPU architecture, plus one universal APK.
 
+## Screenshots
+
+Walletify v0.1.51 on an Android emulator, with demo data.
+
+<p align="center">
+  <img src="docs/screenshots/01-home.png" width="200" alt="Home screen with demo transactions">
+  <img src="docs/screenshots/02-add-expense.png" width="200" alt="Adding an expense">
+  <img src="docs/screenshots/03-menu.png" width="200" alt="Menu">
+  <img src="docs/screenshots/04-settings.png" width="200" alt="Settings">
+</p>
+
 ## Download
 Requires Android 10 (API 29) or newer.
 Open the latest release and start with `Walletify-vX-0-universal.apk` (works everywhere).
