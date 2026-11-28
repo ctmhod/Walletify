@@ -26,10 +26,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -58,6 +60,7 @@ import com.ivy.navigation.ReleasesScreen
 import com.ivy.navigation.navigation
 import com.ivy.navigation.screenScopedViewModel
 import com.ivy.ui.R
+import kotlinx.coroutines.launch
 import com.ivy.wallet.domain.data.IvyCurrency
 import com.ivy.wallet.ui.theme.Gradient
 import com.ivy.wallet.ui.theme.GradientGreen
@@ -412,6 +415,10 @@ private fun BoxWithConstraintsScope.UI(
 
             Spacer(Modifier.height(12.dp))
 
+            CheckForUpdates()
+
+            Spacer(Modifier.height(12.dp))
+
             ErrorLogButton()
 
             Spacer(Modifier.height(12.dp))
@@ -655,6 +662,144 @@ private fun ErrorLogButton() {
             },
         )
     }
+}
+
+private sealed interface UpdateUi {
+    data object Checking : UpdateUi
+    data object Latest : UpdateUi
+    data class Available(val update: UpdateChecker.Update) : UpdateUi
+    data class Downloading(val update: UpdateChecker.Update, val percent: Int) : UpdateUi
+    data class Ready(val update: UpdateChecker.Update, val needPermission: Boolean = false) : UpdateUi
+    data class Failed(val update: UpdateChecker.Update?, val wasDownload: Boolean) : UpdateUi
+}
+
+@Composable
+private fun CheckForUpdates() {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var state by remember { mutableStateOf<UpdateUi?>(null) }
+    val apkFile = remember { java.io.File(context.cacheDir, "updates/walletify-update.apk") }
+    val rootScreen = rootScreen()
+
+    fun runCheck() {
+        state = UpdateUi.Checking
+        // QA hook: a launch extra can pose as an older version.
+        val fake = (context as? android.app.Activity)?.intent
+            ?.getStringExtra("walletify_fake_version")
+        scope.launch {
+            state = when (val r = UpdateChecker.check(fake ?: rootScreen.buildVersionName)) {
+                UpdateChecker.CheckResult.Latest -> UpdateUi.Latest
+                is UpdateChecker.CheckResult.Available -> UpdateUi.Available(r.update)
+                is UpdateChecker.CheckResult.Error -> UpdateUi.Failed(null, false)
+            }
+        }
+    }
+
+    fun runDownload(update: UpdateChecker.Update) {
+        state = UpdateUi.Downloading(update, 0)
+        scope.launch {
+            val res = UpdateChecker.download(update.assetUrl, apkFile) { p ->
+                state = UpdateUi.Downloading(update, p)
+            }
+            state = if (res.isSuccess) {
+                UpdateUi.Ready(update)
+            } else {
+                UpdateUi.Failed(update, true)
+            }
+        }
+    }
+
+    SettingsDefaultButton(
+        icon = R.drawable.ic_refresh,
+        text = "Check for updates",
+        iconPadding = 8.dp,
+    ) {
+        runCheck()
+    }
+
+    val s = state ?: return
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = { state = null },
+        title = { Text("Check for updates") },
+        text = {
+            Column {
+                when (s) {
+                    UpdateUi.Checking -> Text("Checking for updates...")
+                    UpdateUi.Latest -> Text("You are on the latest version")
+                    is UpdateUi.Available -> Text(
+                        "Update available: ${s.update.tag}" +
+                            if (s.update.sizeBytes > 0) {
+                                " (" + String.format(
+                                    java.util.Locale.US,
+                                    "%.1f",
+                                    s.update.sizeBytes / 1048576f
+                                ) + " MB)"
+                            } else {
+                                ""
+                            }
+                    )
+
+                    is UpdateUi.Downloading -> {
+                        Text("Downloading ${s.update.tag}... ${s.percent}%")
+                        Spacer(Modifier.height(12.dp))
+                        androidx.compose.material3.LinearProgressIndicator(
+                            progress = { s.percent / 100f },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+
+                    is UpdateUi.Ready -> Text(
+                        if (s.needPermission) {
+                            "Allow Walletify to install apps on the next screen, then come back and tap Install again."
+                        } else {
+                            "Ready to install ${s.update.tag}"
+                        }
+                    )
+
+                    is UpdateUi.Failed -> Text(
+                        if (s.wasDownload) {
+                            "Download failed. Check your connection and try again."
+                        } else {
+                            "Could not check for updates. Check your connection and try again."
+                        }
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            when (s) {
+                is UpdateUi.Available -> androidx.compose.material3.TextButton(
+                    onClick = { runDownload(s.update) }
+                ) { Text("Download") }
+
+                is UpdateUi.Ready -> androidx.compose.material3.TextButton(
+                    onClick = {
+                        val activity = context as? android.app.Activity
+                        if (activity != null) {
+                            if (!UpdateChecker.canInstall(activity)) {
+                                state = UpdateUi.Ready(s.update, needPermission = true)
+                                UpdateChecker.openInstallPermission(activity)
+                            } else {
+                                UpdateChecker.install(activity, apkFile)
+                            }
+                        }
+                    }
+                ) { Text("Install") }
+
+                is UpdateUi.Failed -> androidx.compose.material3.TextButton(
+                    onClick = {
+                        val u = s.update
+                        if (u == null) runCheck() else runDownload(u)
+                    }
+                ) { Text("Retry") }
+
+                else -> {}
+            }
+        },
+        dismissButton = {
+            androidx.compose.material3.TextButton(onClick = { state = null }) { Text("Close") }
+        },
+    )
 }
 
 @Composable

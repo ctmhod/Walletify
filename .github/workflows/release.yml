@@ -49,6 +49,8 @@ jobs:
           cat > notes.md <<NOTES
           Walletify v$VER, an offline money manager for Android.
 
+          New in v0.1.52: Check for updates in Settings - Walletify checks GitHub for a newer version, downloads it inside the app with a progress bar, and Android installs it.
+
           Requires Android 10 (API 29) or newer.
 
           Start with **Walletify-v$VER-0-universal.apk** (works on every device).
