@@ -24,9 +24,20 @@ LAYER = {108, 162, 216, 324, 432}
 LEGACY = {48, 72, 96, 144, 192}
 
 
+# Original v0.1.52 entry classification (from the first swap run, before any
+# replacement blurred the round/square distinction).
+ROUND_NAMES = {"-6.webp", "fq.webp", "j_.webp", "u5.webp", "yw.webp"}
+LEGACY_NAMES = {"MO.webp", "Sn.webp", "d2.webp", "qs.webp", "sK.webp"}
+
+
 def classify(name, data):
     if not name.endswith(".webp"):
         return None
+    base = name.rsplit("/", 1)[-1]
+    if base in ROUND_NAMES:
+        return ("round", {"-6.webp": 192, "fq.webp": 72, "j_.webp": 144, "u5.webp": 96, "yw.webp": 48}[base])
+    if base in LEGACY_NAMES:
+        return ("legacy", {"MO.webp": 72, "Sn.webp": 144, "d2.webp": 48, "qs.webp": 96, "sK.webp": 192}[base])
     try:
         im = Image.open(io.BytesIO(data)).convert("RGBA")
     except Exception:
