@@ -26,10 +26,14 @@ done
 snap onboarding-end
 python3 $U tap-text prompt_dismiss; sleep 2
 snap home
+add_expense() { adb shell input tap 540 1767; sleep 2; T "ADD EXPENSE" 3; for d in $1; do T $d 1; done; T Enter 3; T "$2" 3; }
+add_expense "4 5" "Groceries"; snap after-first
+add_expense "1 2 0" "Bills & Fees"
+add_expense "3 0" "Transport"
+python3 $U tap-text prompt_dismiss >/dev/null 2>&1; sleep 1
+snap home-with-data
 adb shell input tap 540 1767; sleep 2; snap fab
-T "ADD EXPENSE" 3; T 5; T 0; T 0; snap keypad
-T Enter 3; snap after-enter; python3 $U clickables | tee -a "$OUT/screens.txt"
-T "Add category" 3; snap pick-category; python3 $U clickables | tee -a "$OUT/screens.txt"
+T "ADD EXPENSE" 3; T 5; T 0; snap keypad
 adb shell input keyevent 4; sleep 1; adb shell input keyevent 4; sleep 1
 adb shell am force-stop $PKG; adb shell monkey -p $PKG -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1; sleep 7
 python3 $U tap-text prompt_dismiss >/dev/null 2>&1; sleep 1
