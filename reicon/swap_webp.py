@@ -22,6 +22,11 @@ from PIL import Image
 
 LAYER = {108, 162, 216, 324, 432}
 LEGACY = {48, 72, 96, 144, 192}
+# Entry types a release APK must keep uncompressed (matches AGP noCompress +
+# the .so / resources.arsc storage rules).
+STORED_EXTS = {"so", "arsc", "webp", "png", "jpg", "jpeg", "gif", "mp3",
+               "mp4", "ogg", "webm", "m4a", "3gp", "wav", "aac", "amr",
+               "mkv"}
 
 
 # Original v0.1.52 entry classification (from the first swap run, before any
@@ -96,7 +101,12 @@ def main():
                 data = render(master, w)
                 print(f"swap {info.filename} <- {kind}-{w}")
             zi = zipfile.ZipInfo(info.filename, date_time=info.date_time)
-            zi.compress_type = zipfile.ZIP_DEFLATED
+            # Release APKs store already-compressed entries uncompressed, and
+            # extractNativeLibs=false REQUIRES .so entries to be STORED (they
+            # must also stay page-aligned, done by zipalign -p afterwards).
+            ext = info.filename.rsplit(".", 1)[-1].lower()
+            zi.compress_type = (zipfile.ZIP_STORED if ext in STORED_EXTS
+                                else zipfile.ZIP_DEFLATED)
             zi.external_attr = info.external_attr
             zout.writestr(zi, data)
     print(f"wrote {dst} ({len(replacements)} icon entries swapped)")
