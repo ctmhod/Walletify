@@ -64,7 +64,7 @@ object UpdateChecker {
                     for (i in 0 until assets.length()) {
                         val a = assets.getJSONObject(i)
                         val n = a.optString("name", "")
-                        if (n.startsWith(ASSET_PREFIX) && n.endsWith(".apk") && n.contains(abi)) {
+                        if (n.startsWith(ASSET_PREFIX) && n.endsWith(".apk") && n.endsWith("-$abi.apk")) {
                             update = Update(
                                 tag = tag,
                                 assetName = n,

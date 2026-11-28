@@ -1,0 +1,52 @@
+name: ABI backfill
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to add the missing x86 APK to
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+      - name: Take ABI splits config from main
+        run: |
+          git fetch origin main
+          git checkout origin/main -- app/build.gradle.kts
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Decode keystore
+        run: echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > sign.jks
+      - name: Build
+        env:
+          SIGNING_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: walletify
+        run: ./gradlew :app:assembleRelease --no-daemon -Dorg.gradle.jvmargs=-Xmx4g
+      - name: Verify and upload missing assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          TAG=${{ inputs.tag }}
+          VER=${TAG#v}
+          SRC=$(ls app/build/outputs/apk/release/app-x86-release.apk)
+          DEST="Walletify-v$VER-x86.apk"
+          cp "$SRC" "$DEST"
+          AAPT=$(ls $ANDROID_HOME/build-tools/*/aapt | tail -1)
+          APKSIGNER=$(ls $ANDROID_HOME/build-tools/*/apksigner | tail -1)
+          $APKSIGNER verify --print-certs "$DEST" | grep -q '750fb178'
+          $AAPT dump badging "$DEST" | grep -E '^package|native-code'
+          # upload only assets that are missing
+          gh release view "$TAG" --json assets --jq '.assets[].name' | grep -qx "$DEST" || gh release upload "$TAG" "$DEST"
+          gh release view "$TAG" --json assets --jq '.assets[].name'

@@ -54,7 +54,7 @@ jobs:
           Requires Android 10 (API 29) or newer.
 
           Start with **Walletify-v$VER-0-universal.apk** (works on every device).
-          Smaller per-architecture files: arm64-v8a (most phones and tablets), armeabi-v7a (older 32-bit devices), x86_64 (emulators).
+          Smaller per-architecture files: arm64-v8a (most phones and tablets), armeabi-v7a (older 32-bit devices), x86 and x86_64 (emulators).
           If the install fails with "App not installed", uninstall any older Walletify build first (signing key may differ).
           NOTES
           gh release create "$TAG" out/*.apk --title "Walletify $TAG" --notes-file notes.md
